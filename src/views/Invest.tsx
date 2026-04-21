@@ -75,6 +75,7 @@ export function Invest({ setCurrentView }: any) {
         <motion.button 
           whileTap={{ scale: 0.95 }}
           transition={springTransition}
+          onClick={() => setCurrentView('invest_flow')}
           className="w-full bg-[#2a3c5a] hover:bg-[#324564] border border-white/10 text-white font-semibold rounded-[24px] h-[52px] text-[14px] transition shadow-[0_4px_12px_rgba(0,0,0,0.2)]"
         >
           Investir

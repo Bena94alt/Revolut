@@ -29,6 +29,7 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 
 import { Invest } from './views/Invest';
+import { InvestFlow, ALL_ASSETS } from './views/InvestFlow';
 
 // Exchange rate
 const EXCHANGE_RATE = 10.77;
@@ -56,6 +57,7 @@ const springTransition = { type: "spring", stiffness: 400, damping: 17 };
 
 export default function App() {
   const [currentView, setCurrentView] = useState('dashboard');
+  const [investments, setInvestments] = useState<Record<string, number>>({});
   
   // Global Financial State
   const [balances, setBalances] = useState({
@@ -118,6 +120,7 @@ export default function App() {
                     balances={balances}
                     activeAccount={activeAccount}
                     setActiveAccount={setActiveAccount}
+                    investments={investments}
                   />
                 </motion.div>
               )}
@@ -130,7 +133,7 @@ export default function App() {
           </div>
 
           <AnimatePresence>
-            {currentView !== 'dashboard' && currentView !== 'invest' && currentView !== 'news_feed' && (
+            {currentView !== 'dashboard' && currentView !== 'invest' && currentView !== 'news_feed' && currentView !== 'invest_flow' && (
               <motion.div 
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -142,6 +145,9 @@ export default function App() {
           </AnimatePresence>
 
           <AnimatePresence>
+            {currentView === 'invest_flow' && (
+              <InvestFlow key="invest_flow" setCurrentView={setCurrentView} setInvestments={setInvestments} />
+            )}
             {currentView === 'news_feed' && (
               <motion.div 
                 key="news_feed" 
@@ -255,8 +261,11 @@ export default function App() {
 /* ========================================================================== */
 /* SCREEN 1: DASHBOARD                                                        */
 /* ========================================================================== */
-function Dashboard({ setCurrentView, balances, activeAccount, setActiveAccount }: any) {
+function Dashboard({ setCurrentView, balances, activeAccount, setActiveAccount, investments }: any) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const slideContainerRef = useRef<HTMLDivElement>(null);
+  const portfolioScrollRef = useRef<HTMLDivElement>(null);
+  const [activeSlide, setActiveSlide] = useState(0);
   
   const [rates, setRates] = useState({
     GBP: { val: 11.20, pct: 0.08 },
@@ -285,6 +294,13 @@ function Dashboard({ setCurrentView, balances, activeAccount, setActiveAccount }
     const width = e.currentTarget.clientWidth;
     const slideIndex = Math.round(scrollLeft / width);
     setActiveAccount(slideIndex === 0 ? 'MAD' : 'EUR');
+  };
+
+  const handlePortfolioScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const scrollLeft = e.currentTarget.scrollLeft;
+    const width = e.currentTarget.clientWidth;
+    const slideIndex = Math.round(scrollLeft / width);
+    setActiveSlide(slideIndex);
   };
 
   const renderDots = () => {
@@ -465,41 +481,94 @@ function Dashboard({ setCurrentView, balances, activeAccount, setActiveAccount }
            </div>
         </div>
 
-      {/* Liste de surveillance Section */}
       <div className="px-4 mt-6 pb-6">
-         <div className="flex items-center text-[#94a3b8] font-semibold text-[13px] mb-3 px-1 cursor-pointer w-max">
-            Liste de surveillance <ChevronRight size={14} className="ml-0.5 relative top-[1px]" />
+         <div className="flex items-center text-[#94a3b8] font-semibold text-[13px] mb-3 px-1 cursor-pointer w-max gap-2">
+            <span className={activeSlide === 0 ? 'text-[#e2e8f0]' : 'opacity-70'} onClick={() => portfolioScrollRef.current?.scrollTo({ left: 0, behavior: 'smooth' })}>Liste de surveillance</span>
+            {Object.keys(investments || {}).length > 0 && (
+              <>
+                <span className="text-[#94a3b8]">•</span>
+                <span className={activeSlide === 1 ? 'text-[#e2e8f0]' : 'opacity-70'} onClick={() => portfolioScrollRef.current?.scrollTo({ left: portfolioScrollRef.current?.clientWidth, behavior: 'smooth' })}>Mes Investissements</span>
+              </>
+            )}
          </div>
-          <div className="bg-[#1c2b43] rounded-[24px] px-2 py-2 border border-white/5 shadow-lg flex flex-col">
-            <MarketRow 
-              icon="🇬🇧" 
-              name="Livre sterling" 
-              pair="GBP à MAD" 
-              value={`${formatMoneyParts(rates.GBP.val).integerPart}${formatMoneyParts(rates.GBP.val).decimalPart} MAD`} 
-              pct={rates.GBP.pct} 
-            />
-            <MarketRow 
-              icon="🇺🇸" 
-              name="Dollar américain" 
-              pair="USD à MAD" 
-              value={`${formatMoneyParts(rates.USD.val).integerPart}${formatMoneyParts(rates.USD.val).decimalPart} MAD`} 
-              pct={rates.USD.pct} 
-              isLast
-            />
+         
+         <div 
+           ref={portfolioScrollRef}
+           onScroll={handlePortfolioScroll}
+           className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide"
+         >
+            {/* SLIDE 1: Forex Market */}
+            <div className="min-w-full snap-start pr-4">
+              <div className="bg-[#1c2b43] rounded-[24px] px-2 py-2 border border-white/5 shadow-lg flex flex-col">
+                <MarketRow 
+                  icon="🇬🇧" 
+                  name="Livre sterling" 
+                  pair="GBP à MAD" 
+                  value={`${formatMoneyParts(rates.GBP.val).integerPart},${formatMoneyParts(rates.GBP.val).decimalPart} MAD`} 
+                  pct={rates.GBP.pct} 
+                />
+                <MarketRow 
+                  icon="🇺🇸" 
+                  name="Dollar américain" 
+                  pair="USD à MAD" 
+                  value={`${formatMoneyParts(rates.USD.val).integerPart},${formatMoneyParts(rates.USD.val).decimalPart} MAD`} 
+                  pct={rates.USD.pct} 
+                  isLast
+                />
+              </div>
+            </div>
+
+            {/* SLIDE 2: Personal Portfolio (Conditional) */}
+            {Object.keys(investments || {}).length > 0 && (
+              <div className="min-w-full snap-start">
+                <div className="bg-[#1c2b43] rounded-[24px] px-2 py-2 border border-white/5 shadow-lg flex flex-col">
+                  {Object.entries(investments).map(([id, amount], index, arr) => {
+                    const asset = ALL_ASSETS.find(a => a.id === id);
+                    if (!asset) return null;
+                    return (
+                      <MarketRow 
+                        key={id}
+                        customIcon={asset.icon}
+                        iconBg={asset.bg}
+                        name={asset.name} 
+                        pair={`${amount} parts`} 
+                        value={`${formatMoneyParts(amount * (asset.id === 'btc' ? 95000 : 150)).integerPart},${formatMoneyParts(amount * (asset.id === 'btc' ? 95000 : 150)).decimalPart} MAD`} 
+                        pct={asset.apy / 365} 
+                        isLast={index === arr.length - 1}
+                      />
+                    );
+                  })}
+                </div>
+              </div>
+            )}
          </div>
+
+         {/* Pagination Dots */}
+         {Object.keys(investments || {}).length > 0 && (
+           <div className="flex justify-center mt-4 gap-1.5">
+             <div className={`h-[5px] rounded-full transition-all duration-300 ${activeSlide === 0 ? 'w-4 bg-white' : 'w-1.5 bg-white/20'}`} />
+             <div className={`h-[5px] rounded-full transition-all duration-300 ${activeSlide === 1 ? 'w-4 bg-white' : 'w-1.5 bg-white/20'}`} />
+           </div>
+         )}
       </div>
     </div>
   );
 }
 
-function MarketRow({ icon, name, pair, value, pct, isLast }: any) {
+function MarketRow({ icon, customIcon, iconBg, name, pair, value, pct, isLast }: any) {
   const isPositive = pct >= 0;
   return (
     <div className={`flex justify-between items-center px-3 py-3 border-b border-white/5 ${isLast ? 'border-0' : ''}`}>
        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-white/[0.03] flex items-center justify-center text-[18px]">
-             {icon}
-          </div>
+          {customIcon ? (
+            <div className={`w-9 h-9 rounded-full flex items-center justify-center text-[12px] font-bold ${iconBg}`}>
+               {customIcon}
+            </div>
+          ) : (
+            <div className="w-9 h-9 rounded-full bg-white/[0.03] flex items-center justify-center text-[18px]">
+               {icon}
+            </div>
+          )}
           <div className="flex flex-col">
              <span className="text-[14px] font-semibold text-white">{name}</span>
              <span className="text-[12px] text-[#94a3b8]">{pair}</span>
