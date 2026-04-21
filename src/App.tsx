@@ -440,9 +440,9 @@ function PatrimoineComptes({ setCurrentView, balances }: any) {
              onScroll={handleScroll}
              className="w-full flex overflow-x-auto snap-x snap-mandatory scrollbar-hide px-5 gap-4 pb-2"
           >
-            <CardItem styleType="white" name="Adam Benabdelhak" number="**6927" type="Physique" />
-            <CardItem styleType="dark" name="Éphémère" number="**1234" type="Virtuelle" />
-            <CardItem styleType="premium" name="Premium" number="**9999" type="Originale" />
+            <CardItem styleType="white" name="Adam Benabdelhak" number="**6927" type="Physique" fullNumber="4000 1234 5678 6927" expiry="12/28" cvv="123" />
+            <CardItem styleType="dark" name="Éphémère" number="**1234" type="Virtuelle" fullNumber="4111 0000 1111 1234" expiry="05/26" cvv="000" />
+            <CardItem styleType="premium" name="Premium" number="**9999" type="Originale" fullNumber="4242 4242 4242 9999" expiry="09/29" cvv="420" />
           </div>
           {/* Card Pagination Dots */}
           <div className="flex justify-center gap-1.5 mt-2">
@@ -522,7 +522,9 @@ function PatrimoineRow({ icon, iconBg, label, subValue, isLast }: any) {
   );
 }
 
-function CardItem({ styleType, name, number, type }: any) {
+function CardItem({ styleType, name, number, type, fullNumber, expiry, cvv }: any) {
+  const [isFlipped, setIsFlipped] = useState(false);
+
   let bgClass = '';
   let textClass = 'text-white';
   
@@ -536,22 +538,65 @@ function CardItem({ styleType, name, number, type }: any) {
   }
 
   return (
-    <div className={`shrink-0 w-full sm:w-[280px] h-[170px] snap-center rounded-[24px] p-5 flex flex-col justify-between relative overflow-hidden ${bgClass} ${textClass}`}>
-      <div className="flex justify-between items-start z-10 relative">
-        <div className="font-extrabold tracking-widest text-[14px] italic opacity-90">MOBEN</div>
-        <span className="text-[11px] uppercase font-bold px-2 py-0.5 bg-black/10 rounded-[8px] backdrop-blur-md border border-white/10">{type}</span>
-      </div>
-      <div className="flex flex-col z-10 relative">
-        <div className="font-mono tracking-[0.2em] text-[16px] opacity-80 mb-2">{number}</div>
-        <div className="flex justify-between items-end">
-          <span className="text-[14px] font-semibold truncate pr-2 opacity-90">{name}</span>
-          <div className="italic font-bold text-[20px] opacity-90">VISA</div>
+    <div 
+      className="shrink-0 w-full sm:w-[280px] h-[170px] snap-center cursor-pointer group"
+      style={{ perspective: '1000px' }}
+      onClick={() => setIsFlipped(!isFlipped)}
+    >
+      <div 
+        className="relative w-full h-full transition-transform duration-500 ease-in-out"
+        style={{ 
+          transformStyle: 'preserve-3d', 
+          transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)' 
+        }}
+      >
+        {/* Front Face */}
+        <div 
+          className={`absolute inset-0 rounded-[24px] p-5 flex flex-col justify-between overflow-hidden ${bgClass} ${textClass}`}
+          style={{ backfaceVisibility: 'hidden' }}
+        >
+          <div className="flex justify-between items-start z-10 relative">
+            <div className="font-extrabold tracking-widest text-[14px] italic opacity-90">MOBEN</div>
+            <span className="text-[11px] uppercase font-bold px-2 py-0.5 bg-black/10 rounded-[8px] backdrop-blur-md border border-white/10">{type}</span>
+          </div>
+          <div className="flex flex-col z-10 relative">
+            <div className="font-mono tracking-[0.2em] text-[16px] opacity-80 mb-2">{number}</div>
+            <div className="flex justify-between items-end">
+              <span className="text-[14px] font-semibold truncate pr-2 opacity-90">{name}</span>
+              <div className="italic font-bold text-[20px] opacity-90">VISA</div>
+            </div>
+          </div>
+          {styleType === 'premium' && (
+             <div className="absolute top-1/2 left-1/2 w-[200px] h-[200px] bg-white/10 rounded-full blur-[30px] -translate-x-1/2 -translate-y-1/2 pointer-events-none"></div>
+          )}
+        </div>
+
+        {/* Back Face */}
+        <div 
+          className={`absolute inset-0 rounded-[24px] p-5 flex flex-col justify-between overflow-hidden ${bgClass} ${textClass}`}
+          style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}
+        >
+          {/* Magnetic Stripe */}
+          <div className="w-full h-10 bg-black/30 absolute top-6 left-0"></div>
+          
+          <div className="pt-12 flex flex-col gap-2 relative z-10 mt-1">
+            <div className="flex items-center justify-end bg-white/20 px-3 py-1 rounded text-right">
+               <span className="text-[10px] uppercase font-bold mr-2 opacity-70">CVV</span>
+               <span className="font-mono text-[13px]">{cvv}</span>
+            </div>
+            <div className="flex flex-col mt-0.5">
+               <span className="font-mono text-[15px] opacity-90 tracking-widest">{fullNumber}</span>
+               <div className="flex items-center gap-1 mt-1">
+                  <span className="text-[10px] uppercase opacity-70">Exp</span>
+                  <span className="font-mono text-[12px] opacity-90">{expiry}</span>
+               </div>
+            </div>
+          </div>
+          {styleType === 'premium' && (
+             <div className="absolute top-1/2 left-1/2 w-[200px] h-[200px] bg-white/10 rounded-full blur-[30px] -translate-x-1/2 -translate-y-1/2 pointer-events-none"></div>
+          )}
         </div>
       </div>
-      {/* Decorative bg element for premium card */}
-      {styleType === 'premium' && (
-         <div className="absolute top-1/2 left-1/2 w-[200px] h-[200px] bg-white/10 rounded-full blur-[30px] -translate-x-1/2 -translate-y-1/2 pointer-events-none"></div>
-      )}
     </div>
   );
 }
