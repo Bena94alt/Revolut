@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   Camera,
   Search,
@@ -19,7 +19,10 @@ import {
   Share,
   ShieldCheck,
   Clock,
-  PiggyBank
+  ChevronRight,
+  Coins,
+  Link as LinkIcon,
+  HandCoins
 } from 'lucide-react';
 
 // Exchange rate
@@ -76,7 +79,7 @@ export default function App() {
       <div className="w-full h-[100dvh] sm:w-[360px] sm:h-[740px] sm:rounded-[40px] shadow-[0_50px_100px_rgba(0,0,0,0.5)] relative overflow-hidden bg-gradient-to-b from-[#0A1530] to-[#050A1A] text-white flex flex-col sm:border-[8px] sm:border-[#1c2b43] leading-normal">
         
         {/* StatusBar (iOS) */}
-        <div className="flex justify-between items-center px-6 pt-5 pb-2 text-[14px] font-semibold tracking-wide z-10 relative">
+        <div className="flex justify-between items-center px-6 pt-5 pb-2 text-[14px] font-semibold tracking-wide z-10 relative bg-[#0A1530]">
           <span>09:58</span>
           <div className="flex items-center gap-1.5">
             <SignalHigh size={16} className="stroke-[2.5]" />
@@ -86,7 +89,7 @@ export default function App() {
         </div>
 
         {/* Dynamic Screen Content */}
-        <div className="flex-1 overflow-y-auto scrollbar-hide flex flex-col relative w-full h-full">
+        <div className="flex-1 overflow-y-auto scrollbar-hide flex flex-col relative w-full h-full pb-[80px]">
           {currentView === 'dashboard' && (
             <Dashboard 
               setCurrentView={setCurrentView} 
@@ -165,10 +168,32 @@ export default function App() {
 }
 
 /* ========================================================================== */
-/* SCREEN: DASHBOARD                                                          */
+/* SCREEN 1: DASHBOARD                                                        */
 /* ========================================================================== */
 function Dashboard({ setCurrentView, balances, activeAccount, setActiveAccount }: any) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  
+  const [rates, setRates] = useState({
+    GBP: { val: 11.20, pct: 0.08 },
+    USD: { val: 10.15, pct: 0.24 }
+  });
+
+  useEffect(() => {
+    // Simulate real-time market fluctuations
+    const interval = setInterval(() => {
+      setRates(prev => ({
+        GBP: { 
+          val: prev.GBP.val + (Math.random() * 0.02 - 0.01), 
+          pct: prev.GBP.pct + (Math.random() * 0.02 - 0.01) 
+        },
+        USD: { 
+          val: prev.USD.val + (Math.random() * 0.02 - 0.01), 
+          pct: prev.USD.pct + (Math.random() * 0.02 - 0.01) 
+        }
+      }));
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const scrollLeft = e.currentTarget.scrollLeft;
@@ -188,7 +213,7 @@ function Dashboard({ setCurrentView, balances, activeAccount, setActiveAccount }
   };
 
   return (
-    <div className="pb-[100px] flex flex-col pt-2 animate-in fade-in duration-300">
+    <div className="flex flex-col pt-2 animate-in fade-in duration-300">
       <div className="grid grid-cols-[40px_1fr_32px] items-center px-4 gap-3">
         <button className="w-10 h-10 rounded-full bg-gradient-to-br from-[#2563eb] to-[#3b82f6] flex items-center justify-center shadow-md">
           <Camera size={20} className="text-white relative top-[1px]" />
@@ -264,8 +289,8 @@ function Dashboard({ setCurrentView, balances, activeAccount, setActiveAccount }
 
       <div className="flex justify-around px-4 mt-8 mb-4">
         <div className="flex flex-col items-center gap-2 group w-[80px] cursor-pointer" onClick={() => setCurrentView('add_money')}>
-          <button className="w-[56px] h-[56px] rounded-full bg-[#1c2b43] border border-white/5 flex items-center justify-center transition hover:bg-[#2a3c5a]">
-            <Plus size={24} className="text-[#3b82f6]" />
+          <button className="w-[56px] h-[56px] rounded-full bg-[#1c2b43] border border-white/5 flex items-center justify-center transition hover:bg-[#2a3c5a] shadow-[0_4px_12px_rgba(0,0,0,0.2)] text-[#3b82f6]">
+            <Plus size={24} />
           </button>
           <span className="text-[11px] font-medium text-white/80 text-center leading-tight">
             Ajouter de l'argent
@@ -273,8 +298,8 @@ function Dashboard({ setCurrentView, balances, activeAccount, setActiveAccount }
         </div>
         
         <div className="flex flex-col items-center gap-2 group w-[80px] cursor-pointer" onClick={() => setCurrentView('transfer')}>
-          <button className="w-[56px] h-[56px] rounded-full bg-[#1c2b43] border border-white/5 flex items-center justify-center transition hover:bg-[#2a3c5a]">
-            <ArrowLeftRight size={22} className="text-[#3b82f6]" />
+          <button className="w-[56px] h-[56px] rounded-full bg-[#1c2b43] border border-white/5 flex items-center justify-center transition hover:bg-[#2a3c5a] shadow-[0_4px_12px_rgba(0,0,0,0.2)] text-[#3b82f6]">
+            <ArrowLeftRight size={22} />
           </button>
           <span className="text-[11px] font-medium text-white/80 text-center leading-tight">
             Entre mes comptes
@@ -282,8 +307,8 @@ function Dashboard({ setCurrentView, balances, activeAccount, setActiveAccount }
         </div>
 
         <div className="flex flex-col items-center gap-2 group w-[80px] cursor-pointer" onClick={() => setCurrentView('bank_details')}>
-          <button className="w-[56px] h-[56px] rounded-full bg-[#1c2b43] border border-white/5 flex items-center justify-center transition hover:bg-[#2a3c5a]">
-            <Landmark size={22} className="text-[#3b82f6]" />
+          <button className="w-[56px] h-[56px] rounded-full bg-[#1c2b43] border border-white/5 flex items-center justify-center transition hover:bg-[#2a3c5a] shadow-[0_4px_12px_rgba(0,0,0,0.2)] text-[#3b82f6]">
+            <Landmark size={22} />
           </button>
           <span className="text-[11px] font-medium text-white/80 text-center leading-tight">
             Informations
@@ -291,8 +316,8 @@ function Dashboard({ setCurrentView, balances, activeAccount, setActiveAccount }
         </div>
 
         <div className="flex flex-col items-center gap-2 group w-[80px] cursor-pointer">
-          <button className="w-[56px] h-[56px] rounded-full bg-[#1c2b43] border border-white/5 flex items-center justify-center transition hover:bg-[#2a3c5a]">
-            <MoreHorizontal size={24} className="text-[#3b82f6]" />
+          <button className="w-[56px] h-[56px] rounded-full bg-[#1c2b43] border border-white/5 flex items-center justify-center transition hover:bg-[#2a3c5a] shadow-[0_4px_12px_rgba(0,0,0,0.2)] text-[#3b82f6]">
+            <MoreHorizontal size={24} />
           </button>
           <span className="text-[11px] font-medium text-white/80 text-center leading-tight">
             Plus
@@ -300,15 +325,79 @@ function Dashboard({ setCurrentView, balances, activeAccount, setActiveAccount }
         </div>
       </div>
 
-      <div className="mx-5 mt-6">
-        <div className="flex justify-between items-end mb-4">
-          <h3 className="text-[16px] font-semibold text-white">Transactions</h3>
-          <button className="text-[#3b82f6] text-[13px] font-medium">Tout afficher</button>
-        </div>
-        <div className="flex flex-col items-center justify-center py-10 bg-[#1c2B43]/50 rounded-[24px] border border-white/5">
-          <p className="text-[13px] text-[#94a3b8]">Aucune transaction récente</p>
-        </div>
+      {/* Dépenses du mois Section */}
+      <div className="px-4 mt-6">
+         <div className="bg-[#1c2b43] rounded-[24px] p-5 border border-white/5 shadow-lg">
+            <h3 className="text-[13px] font-medium text-[#94a3b8] mb-1">Dépenses du mois</h3>
+            <div className="flex items-baseline mb-6">
+              <span className="text-[32px] font-bold text-white leading-none">0</span>
+              <span className="text-[16px] font-medium text-white/50 ml-1.5">MAD</span>
+            </div>
+            
+            {/* Progress Bar with markers */}
+            <div className="relative pt-2">
+              <div className="w-full h-[3px] bg-white/10 rounded-full">
+                 <div className="w-[10%] h-full bg-[#3b82f6] rounded-full"></div>
+              </div>
+              <div className="flex justify-between w-full mt-2 text-[10px] text-white/30 font-medium">
+                <span>1</span>
+                <span>6</span>
+                <span>11</span>
+                <span>16</span>
+                <span>21</span>
+                <span>26</span>
+                <span>30</span>
+              </div>
+            </div>
+         </div>
       </div>
+
+      {/* Liste de surveillance Section */}
+      <div className="px-4 mt-6 pb-6">
+         <div className="flex items-center text-[#94a3b8] font-semibold text-[13px] mb-3 px-1 cursor-pointer w-max">
+            Liste de surveillance <ChevronRight size={14} className="ml-0.5 relative top-[1px]" />
+         </div>
+         <div className="bg-[#1c2b43] rounded-[24px] px-2 py-2 border border-white/5 shadow-lg flex flex-col">
+            <MarketRow 
+              icon="🇬🇧" 
+              name="Livre sterling" 
+              pair="GBP à MAD" 
+              value={`${rates.GBP.val.toFixed(2)} MAD`} 
+              pct={rates.GBP.pct} 
+            />
+            <MarketRow 
+              icon="🇺🇸" 
+              name="Dollar américain" 
+              pair="USD à MAD" 
+              value={`${rates.USD.val.toFixed(2)} MAD`} 
+              pct={rates.USD.pct} 
+              isLast
+            />
+         </div>
+      </div>
+    </div>
+  );
+}
+
+function MarketRow({ icon, name, pair, value, pct, isLast }: any) {
+  const isPositive = pct >= 0;
+  return (
+    <div className={`flex justify-between items-center px-3 py-3 border-b border-white/5 ${isLast ? 'border-0' : ''}`}>
+       <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-full bg-white/[0.03] flex items-center justify-center text-[18px]">
+             {icon}
+          </div>
+          <div className="flex flex-col">
+             <span className="text-[14px] font-semibold text-white">{name}</span>
+             <span className="text-[12px] text-[#94a3b8]">{pair}</span>
+          </div>
+       </div>
+       <div className="flex flex-col items-end">
+          <span className="text-[14px] font-bold text-white">{value}</span>
+          <span className={`text-[12px] font-semibold ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
+             {isPositive ? '+' : ''}{pct.toFixed(2)}%
+          </span>
+       </div>
     </div>
   );
 }
@@ -317,85 +406,118 @@ function Dashboard({ setCurrentView, balances, activeAccount, setActiveAccount }
 /* SCREEN: PATRIMOINE & COMPTES (+ Cartes)                                    */
 /* ========================================================================== */
 function PatrimoineComptes({ setCurrentView, balances }: any) {
-  // Calculate total in MAD
   const totalMAD = balances.MAD + (balances.EUR * EXCHANGE_RATE);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [activeCardData, setActiveCardData] = useState(0);
+
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const scrollLeft = e.currentTarget.scrollLeft;
+    const width = e.currentTarget.clientWidth;
+    const slideIndex = Math.round(scrollLeft / width);
+    setActiveCardData(slideIndex);
+  };
 
   return (
-    <div className="flex flex-col h-full animate-in slide-in-from-bottom-8 duration-300 relative">
+    <div className="flex flex-col h-full animate-in slide-in-from-bottom-8 duration-300 relative bg-gradient-to-b from-[#0A1530] to-[#050A1A]">
       {/* Header */}
       <div className="flex items-center px-4 pt-2 pb-2">
         <button 
           onClick={() => setCurrentView('dashboard')} 
-          className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 transition shrink-0"
+          className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 transition shrink-0 z-10"
         >
           <ChevronLeft size={24} className="text-white" />
         </button>
       </div>
 
-      {/* Patrimoine Total */}
-      <div className="px-4 text-center mt-2">
-        <h2 className="text-[13px] font-medium text-white/50 mb-1">Patrimoine total</h2>
-        <div className="flex items-baseline justify-center mb-6">
-          <span className="text-[44px] font-bold tracking-tight text-white whitespace-nowrap">
-            {formatMoney(totalMAD)}
-          </span>
-          <span className="text-[20px] font-medium text-white/50 ml-1.5">MAD</span>
-        </div>
-      </div>
-
-      <div className="flex-1 overflow-y-auto scrollbar-hide pb-16">
+      <div className="flex-1 overflow-y-auto scrollbar-hide pb-6 -mt-12">
         {/* Gestion des Cartes (Horizontal Slider) */}
-        <div className="mt-2 mb-6">
-          <div className="flex justify-between items-end px-5 mb-3">
-            <h3 className="text-[16px] font-semibold text-white">Gestion des Cartes</h3>
-            <span className="text-[#3b82f6] text-[13px] font-medium">Ajouter</span>
+        <div className="mt-2 mb-8">
+          <div className="flex items-center text-[#94a3b8] font-semibold text-[13px] mb-3 px-5 cursor-pointer w-max pl-[60px] pt-2">
+            Cartes <ChevronRight size={14} className="ml-0.5 relative top-[1px]" />
           </div>
-          <div className="w-full flex overflow-x-auto snap-x snap-mandatory scrollbar-hide px-5 gap-4 pb-2">
+          <div 
+             ref={scrollContainerRef}
+             onScroll={handleScroll}
+             className="w-full flex overflow-x-auto snap-x snap-mandatory scrollbar-hide px-5 gap-4 pb-2"
+          >
             <CardItem styleType="white" name="Adam Benabdelhak" number="**6927" type="Physique" />
             <CardItem styleType="dark" name="Éphémère" number="**1234" type="Virtuelle" />
             <CardItem styleType="premium" name="Premium" number="**9999" type="Originale" />
           </div>
+          {/* Card Pagination Dots */}
+          <div className="flex justify-center gap-1.5 mt-2">
+            {[0, 1, 2].map((dot) => (
+               <div key={dot} className={`w-[6px] h-[6px] rounded-full transition-colors duration-300 ${dot === activeCardData ? 'bg-white' : 'bg-white/20'}`}></div>
+            ))}
+          </div>
         </div>
 
-        {/* Comptes List */}
+        {/* Patrimoine Total Center */}
+        <div className="px-4 text-center mt-2 mb-6">
+          <div className="flex items-center justify-center text-[#94a3b8] font-semibold text-[13px] mb-1 cursor-pointer">
+            Patrimoine total <ChevronRight size={14} className="ml-0.5 relative top-[1px]" />
+          </div>
+          <div className="flex items-baseline justify-center">
+            <span className="text-[44px] font-bold tracking-tight text-white whitespace-nowrap">
+              {formatMoney(totalMAD)}
+            </span>
+            <span className="text-[22px] font-medium text-white/50 ml-1.5">MAD</span>
+          </div>
+        </div>
+
+        {/* Patrimoine List rows */}
         <div className="px-4">
-          <h3 className="text-[16px] font-semibold text-white mb-3 pl-1">Comptes et autres</h3>
           <div className="bg-[#1c2b43] rounded-[24px] p-2 border border-white/5 flex flex-col shadow-lg">
-            <AccountRow 
-              icon="🇲🇦" 
-              label="Dirham Marocain" 
-              balance={`${formatMoney(balances.MAD)} MAD`} 
+            <PatrimoineRow 
+              icon={<Coins size={20} className="text-[#3b82f6]" />} 
+              iconBg="bg-[#3b82f6]/10"
+              label="Espèces" 
+              subValue={`${formatMoney(balances.MAD)} MAD`} 
             />
-            <AccountRow 
-              icon="🇪🇺" 
-              label="Euro" 
-              balance={`${formatMoney(balances.EUR)} EUR`} 
+            <PatrimoineRow 
+              icon={<HandCoins size={20} className="text-[#eab308]" />} 
+              iconBg="bg-[#eab308]/10"
+              label="Prêt" 
+              subValue="Obtenez un prêt allant jusqu'à..." 
             />
-            <AccountRow 
-              isComponent 
-              icon={<PiggyBank size={18} />} 
-              label="Coffres" 
-              balance="0,00 MAD" 
-            />
-            <AccountRow 
-              isComponent 
-              icon={<BarChart3 size={18} />} 
+            <PatrimoineRow 
+              icon={<BarChart3 size={20} className="text-[#3b82f6]" />} 
+              iconBg="bg-[#3b82f6]/10"
               label="Investir" 
-              balance="0,00 MAD" 
+              subValue="Investir dès 1 MAD" 
             />
-            <AccountRow 
-              isComponent 
-              icon={<Bitcoin size={18} />} 
+            <PatrimoineRow 
+              icon={<Bitcoin size={20} className="text-[#a855f7]" />} 
+              iconBg="bg-[#a855f7]/10"
               label="Cryptos" 
-              balance="0,00 MAD" 
+              subValue="0,00 MAD" 
+            />
+            <PatrimoineRow 
+              icon={<LinkIcon size={20} className="text-[#06b6d4]" />} 
+              iconBg="bg-[#06b6d4]/10"
+              label="Lié(s)" 
+              subValue="Liez des comptes externes" 
               isLast
             />
           </div>
         </div>
       </div>
+    </div>
+  );
+}
 
-      {/* Home Indicator */}
-      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-[120px] h-[5px] bg-white/80 rounded-full"></div>
+function PatrimoineRow({ icon, iconBg, label, subValue, isLast }: any) {
+  return (
+    <div className={`flex items-center justify-between p-3 border-b border-white/5 ${isLast ? 'border-0' : ''}`}>
+      <div className="flex items-center gap-4">
+        <div className={`w-[40px] h-[40px] rounded-full flex items-center justify-center shrink-0 ${iconBg}`}>
+          {icon}
+        </div>
+        <div className="flex flex-col">
+           <span className="text-[15px] font-semibold text-white tracking-wide">{label}</span>
+           <span className="text-[13px] text-[#94a3b8]">{subValue}</span>
+        </div>
+      </div>
     </div>
   );
 }
@@ -405,41 +527,31 @@ function CardItem({ styleType, name, number, type }: any) {
   let textClass = 'text-white';
   
   if (styleType === 'white') { 
-    bgClass = 'bg-[#f8f9fa] shadow-sm text-black'; 
+    bgClass = 'bg-[#f8f9fa] shadow-sm text-black border-[3px] border-[#e2e8f0]'; 
     textClass = 'text-black'; 
   } else if (styleType === 'dark') { 
     bgClass = 'bg-[#18233A] border border-[#a5b9fc]/20 text-white'; 
   } else if (styleType === 'premium') { 
-    bgClass = 'bg-gradient-to-br from-[#8A2387] via-[#E94057] to-[#F27121] text-white'; 
+    bgClass = 'bg-gradient-to-br from-[#8A2387] via-[#E94057] to-[#F27121] text-white shadow-lg shadow-[#8A2387]/20 border border-white/10'; 
   }
 
   return (
-    <div className={`shrink-0 w-[240px] h-[150px] snap-center rounded-[20px] p-5 flex flex-col justify-between relative overflow-hidden ${bgClass} ${textClass}`}>
-      <div className="flex justify-between items-start">
-        <div className="font-extrabold tracking-widest text-[14px] italic opacity-90 relative top-1">MOBEN</div>
-        <span className="text-[10px] uppercase font-bold px-2 py-1 bg-white/20 rounded-[6px] backdrop-blur-sm border border-white/10 shadow-sm">{type}</span>
+    <div className={`shrink-0 w-full sm:w-[280px] h-[170px] snap-center rounded-[24px] p-5 flex flex-col justify-between relative overflow-hidden ${bgClass} ${textClass}`}>
+      <div className="flex justify-between items-start z-10 relative">
+        <div className="font-extrabold tracking-widest text-[14px] italic opacity-90">MOBEN</div>
+        <span className="text-[11px] uppercase font-bold px-2 py-0.5 bg-black/10 rounded-[8px] backdrop-blur-md border border-white/10">{type}</span>
       </div>
-      <div className="flex flex-col">
-        <div className="font-mono tracking-[0.2em] text-[15px] opacity-80 mb-1.5">{number}</div>
+      <div className="flex flex-col z-10 relative">
+        <div className="font-mono tracking-[0.2em] text-[16px] opacity-80 mb-2">{number}</div>
         <div className="flex justify-between items-end">
-          <span className="text-[13px] font-semibold truncate pr-2 opacity-90">{name}</span>
-          <div className="italic font-bold text-[18px] opacity-90">VISA</div>
+          <span className="text-[14px] font-semibold truncate pr-2 opacity-90">{name}</span>
+          <div className="italic font-bold text-[20px] opacity-90">VISA</div>
         </div>
       </div>
-    </div>
-  );
-}
-
-function AccountRow({ icon, label, balance, isComponent, isLast }: any) {
-  return (
-    <div className={`flex items-center justify-between p-3 border-b border-white/5 ${isLast ? 'border-0' : ''}`}>
-      <div className="flex items-center gap-3">
-        <div className="w-[42px] h-[42px] rounded-full bg-white/[0.03] border border-white/[0.05] flex items-center justify-center text-[20px] shrink-0">
-          {isComponent ? <div className="text-[#3b82f6] relative top-[1px]">{icon}</div> : <span className="relative top-[1px]">{icon}</span>}
-        </div>
-        <span className="text-[15px] font-medium text-white tracking-wide">{label}</span>
-      </div>
-      <span className="text-[15px] font-semibold text-white">{balance}</span>
+      {/* Decorative bg element for premium card */}
+      {styleType === 'premium' && (
+         <div className="absolute top-1/2 left-1/2 w-[200px] h-[200px] bg-white/10 rounded-full blur-[30px] -translate-x-1/2 -translate-y-1/2 pointer-events-none"></div>
+      )}
     </div>
   );
 }
@@ -460,13 +572,13 @@ function AddMoney({ setCurrentView, activeAccount, currentBalance, onAddMoney }:
 
   return (
     <div className="flex flex-col h-full animate-in slide-in-from-right-4 duration-300 relative">
-      <div className="flex items-center px-4 pt-2 pb-4">
+      <div className="flex items-center px-4 pt-4 pb-4">
         <button onClick={() => setCurrentView('dashboard')} className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 transition shrink-0">
           <ChevronLeft size={24} className="text-white" />
         </button>
         <div className="flex-1 text-center pr-10">
           <h2 className="text-[16px] font-semibold text-white leading-tight">Ajouter de l'argent</h2>
-          <p className="text-[12px] text-white/50 font-medium">Solde : {formatMoney(currentBalance)} {activeAccount}</p>
+          <p className="text-[12px] text-white/50 font-medium mt-0.5">Solde : {formatMoney(currentBalance)} {activeAccount}</p>
         </div>
       </div>
 
@@ -480,7 +592,9 @@ function AddMoney({ setCurrentView, activeAccount, currentBalance, onAddMoney }:
             className="w-full text-center bg-transparent border-none outline-none text-[64px] font-bold tracking-tight text-white placeholder-white/30"
             placeholder="0"
           />
-          <span className="text-[32px] font-semibold text-white/70 ml-2 relative shrink-0">{activeAccount}</span>
+          <span className="text-[32px] font-semibold text-white/70 ml-2 relative shrink-0">
+            <span className="text-[32px] font-semibold text-white/70">{activeAccount}</span>
+          </span>
         </div>
         
         <button className="mt-8 flex items-center gap-2 bg-[#1c2b43] hover:bg-[#2a3c5a] border border-white/10 rounded-full px-5 py-2.5 transition">
@@ -493,7 +607,7 @@ function AddMoney({ setCurrentView, activeAccount, currentBalance, onAddMoney }:
         </button>
       </div>
 
-      <div className="px-5 pb-8 pt-4">
+      <div className="px-5 pb-10 pt-4">
         <p className="text-center text-[12px] text-white/50 font-medium mb-4">Arrivée · Généralement instantanée</p>
         <button 
           onClick={handleConfirm}
@@ -502,7 +616,6 @@ function AddMoney({ setCurrentView, activeAccount, currentBalance, onAddMoney }:
           <span className="font-bold text-[16px]">Confirmer le dépôt</span>
         </button>
       </div>
-      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-[120px] h-[5px] bg-white/80 rounded-full"></div>
     </div>
   );
 }
@@ -537,7 +650,7 @@ function Transfer({ setCurrentView, balances, onTransfer }: any) {
 
   return (
     <div className="flex flex-col h-full animate-in slide-in-from-right-4 duration-300 relative">
-      <div className="flex items-center px-4 pt-2 pb-2">
+      <div className="flex items-center px-4 pt-4 pb-2">
         <button 
           onClick={() => step === 'confirm' ? setStep('input') : setCurrentView('dashboard')} 
           className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 transition shrink-0"
@@ -621,7 +734,7 @@ function Transfer({ setCurrentView, balances, onTransfer }: any) {
         </div>
       </div>
 
-      <div className="mt-auto px-4 pb-8 flex items-center gap-3">
+      <div className="mt-auto px-4 pb-10 flex items-center gap-3">
         <button className="w-[52px] h-[52px] rounded-full bg-[#1c2b43] border border-white/5 flex items-center justify-center shrink-0">
           <Settings size={22} className="text-[#94a3b8]" />
         </button>
@@ -636,8 +749,6 @@ function Transfer({ setCurrentView, balances, onTransfer }: any) {
           {step === 'confirm' ? 'Confirmer le transfert' : 'Vérifier le change'}
         </button>
       </div>
-
-      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-[120px] h-[5px] bg-white/80 rounded-full"></div>
     </div>
   );
 }
@@ -648,7 +759,7 @@ function Transfer({ setCurrentView, balances, onTransfer }: any) {
 function BankDetails({ setCurrentView, activeAccount }: any) {
   return (
     <div className="flex flex-col h-full animate-in slide-in-from-right-4 duration-300 relative">
-      <div className="flex flex-col px-4 pt-2 pb-4">
+      <div className="flex flex-col px-4 pt-4 pb-4 bg-[#0A1530]">
         <div className="flex items-center">
           <button onClick={() => setCurrentView('dashboard')} className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 transition shrink-0">
             <ChevronLeft size={24} className="text-white" />
@@ -664,7 +775,7 @@ function BankDetails({ setCurrentView, activeAccount }: any) {
       </div>
 
       <div className="px-4 pb-16 flex-1 overflow-y-auto scrollbar-hide">
-        <div className="bg-[#1c2b43] rounded-[24px] p-5 border border-white/5 flex flex-col gap-6">
+        <div className="bg-[#1c2b43] rounded-[24px] p-5 border border-white/5 flex flex-col gap-6 mt-4">
           <InfoRow label="Bénéficiaire" value="Adam Benabdelhak" />
           <InfoRow label="IBAN" value={activeAccount === 'EUR' ? "FR76 1234 5678 9012 3456 7890 123" : "MA03 0000 0000 0000 0000 0000 000"} />
           <InfoRow label="BIC" value={activeAccount === 'EUR' ? "REVOFRXX" : "MOBEMAMX"} />
@@ -698,8 +809,6 @@ function BankDetails({ setCurrentView, activeAccount }: any) {
           </div>
         </div>
       </div>
-
-      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-[120px] h-[5px] bg-white/80 rounded-full"></div>
     </div>
   );
 }
