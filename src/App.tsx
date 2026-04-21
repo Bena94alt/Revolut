@@ -18,7 +18,8 @@ import {
   Copy,
   Share,
   ShieldCheck,
-  Clock
+  Clock,
+  PiggyBank
 } from 'lucide-react';
 
 // Exchange rate
@@ -94,6 +95,12 @@ export default function App() {
               setActiveAccount={setActiveAccount}
             />
           )}
+          {currentView === 'patrimoine_comptes' && (
+            <PatrimoineComptes 
+              setCurrentView={setCurrentView} 
+              balances={balances}
+            />
+          )}
           {currentView === 'add_money' && (
             <AddMoney 
               setCurrentView={setCurrentView} 
@@ -158,7 +165,7 @@ export default function App() {
 }
 
 /* ========================================================================== */
-/* SCREEN 1: DASHBOARD                                                        */
+/* SCREEN: DASHBOARD                                                          */
 /* ========================================================================== */
 function Dashboard({ setCurrentView, balances, activeAccount, setActiveAccount }: any) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -170,7 +177,6 @@ function Dashboard({ setCurrentView, balances, activeAccount, setActiveAccount }
     setActiveAccount(slideIndex === 0 ? 'MAD' : 'EUR');
   };
 
-  // Keep pagination to 4 dots but highlight based on activeAccount (0=MAD, 1=EUR)
   const renderDots = () => {
     const activeIndex = activeAccount === 'MAD' ? 0 : 1;
     return [0, 1, 2, 3].map((dot) => (
@@ -183,12 +189,10 @@ function Dashboard({ setCurrentView, balances, activeAccount, setActiveAccount }
 
   return (
     <div className="pb-[100px] flex flex-col pt-2 animate-in fade-in duration-300">
-      {/* Main Search Container */}
       <div className="grid grid-cols-[40px_1fr_32px] items-center px-4 gap-3">
         <button className="w-10 h-10 rounded-full bg-gradient-to-br from-[#2563eb] to-[#3b82f6] flex items-center justify-center shadow-md">
           <Camera size={20} className="text-white relative top-[1px]" />
         </button>
-        
         <div className="h-10 bg-white/10 backdrop-blur-md rounded-[20px] flex items-center px-3">
           <Search size={16} className="text-[#94a3b8] mr-2" />
           <input
@@ -198,7 +202,6 @@ function Dashboard({ setCurrentView, balances, activeAccount, setActiveAccount }
             readOnly
           />
         </div>
-
         <div className="flex flex-col gap-1">
           <button className="w-8 h-8 bg-white/5 backdrop-blur-md rounded-full flex items-center justify-center">
             <BarChart3 size={14} className="text-white" />
@@ -209,14 +212,11 @@ function Dashboard({ setCurrentView, balances, activeAccount, setActiveAccount }
         </div>
       </div>
 
-      {/* Main Balance Section */}
       <div className="mt-8 flex flex-col items-center">
-        {/* Pagination Dots */}
         <div className="flex gap-[6px] mb-3">
           {renderDots()}
         </div>
 
-        {/* Swipeable Accounts UI */}
         <div 
           ref={scrollContainerRef}
           className="w-full flex overflow-x-auto snap-x snap-mandatory scrollbar-hide py-2"
@@ -233,13 +233,16 @@ function Dashboard({ setCurrentView, balances, activeAccount, setActiveAccount }
               </span>
               <span className="text-[26px] font-medium tracking-wide text-white/50 ml-1.5">MAD</span>
             </div>
-            <button className="px-5 py-2 bg-white/10 hover:bg-white/15 backdrop-blur-sm transition text-white rounded-[20px] text-[13px] font-medium border border-white/5">
+            <button 
+              onClick={() => setCurrentView('patrimoine_comptes')}
+              className="px-5 py-2 bg-white/10 hover:bg-white/15 backdrop-blur-sm transition text-white rounded-[20px] text-[13px] font-medium border border-white/5"
+            >
               Comptes et Portefeuilles
             </button>
           </div>
 
           {/* Slide 2: EUR */}
-          <div className="w-full shrink-0 snap-center flex flex-col items-center px-4 pt-1 !ms-0">
+          <div className="w-full shrink-0 snap-center flex flex-col items-center px-4 pt-1">
             <p className="text-[13px] text-white/70 font-medium tracking-wide mb-1">
               Adam Benabdelhak - EUR
             </p>
@@ -249,14 +252,16 @@ function Dashboard({ setCurrentView, balances, activeAccount, setActiveAccount }
               </span>
               <span className="text-[26px] font-medium tracking-wide text-white/50 ml-1.5">EUR</span>
             </div>
-            <button className="px-5 py-2 bg-white/10 hover:bg-white/15 backdrop-blur-sm transition text-white rounded-[20px] text-[13px] font-medium border border-white/5">
+            <button 
+              onClick={() => setCurrentView('patrimoine_comptes')}
+              className="px-5 py-2 bg-white/10 hover:bg-white/15 backdrop-blur-sm transition text-white rounded-[20px] text-[13px] font-medium border border-white/5"
+            >
               Comptes et Portefeuilles
             </button>
           </div>
         </div>
       </div>
 
-      {/* Quick Action Buttons */}
       <div className="flex justify-around px-4 mt-8 mb-4">
         <div className="flex flex-col items-center gap-2 group w-[80px] cursor-pointer" onClick={() => setCurrentView('add_money')}>
           <button className="w-[56px] h-[56px] rounded-full bg-[#1c2b43] border border-white/5 flex items-center justify-center transition hover:bg-[#2a3c5a]">
@@ -295,7 +300,6 @@ function Dashboard({ setCurrentView, balances, activeAccount, setActiveAccount }
         </div>
       </div>
 
-      {/* Transactions List Placeholder */}
       <div className="mx-5 mt-6">
         <div className="flex justify-between items-end mb-4">
           <h3 className="text-[16px] font-semibold text-white">Transactions</h3>
@@ -305,6 +309,137 @@ function Dashboard({ setCurrentView, balances, activeAccount, setActiveAccount }
           <p className="text-[13px] text-[#94a3b8]">Aucune transaction récente</p>
         </div>
       </div>
+    </div>
+  );
+}
+
+/* ========================================================================== */
+/* SCREEN: PATRIMOINE & COMPTES (+ Cartes)                                    */
+/* ========================================================================== */
+function PatrimoineComptes({ setCurrentView, balances }: any) {
+  // Calculate total in MAD
+  const totalMAD = balances.MAD + (balances.EUR * EXCHANGE_RATE);
+
+  return (
+    <div className="flex flex-col h-full animate-in slide-in-from-bottom-8 duration-300 relative">
+      {/* Header */}
+      <div className="flex items-center px-4 pt-2 pb-2">
+        <button 
+          onClick={() => setCurrentView('dashboard')} 
+          className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 transition shrink-0"
+        >
+          <ChevronLeft size={24} className="text-white" />
+        </button>
+      </div>
+
+      {/* Patrimoine Total */}
+      <div className="px-4 text-center mt-2">
+        <h2 className="text-[13px] font-medium text-white/50 mb-1">Patrimoine total</h2>
+        <div className="flex items-baseline justify-center mb-6">
+          <span className="text-[44px] font-bold tracking-tight text-white whitespace-nowrap">
+            {formatMoney(totalMAD)}
+          </span>
+          <span className="text-[20px] font-medium text-white/50 ml-1.5">MAD</span>
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-y-auto scrollbar-hide pb-16">
+        {/* Gestion des Cartes (Horizontal Slider) */}
+        <div className="mt-2 mb-6">
+          <div className="flex justify-between items-end px-5 mb-3">
+            <h3 className="text-[16px] font-semibold text-white">Gestion des Cartes</h3>
+            <span className="text-[#3b82f6] text-[13px] font-medium">Ajouter</span>
+          </div>
+          <div className="w-full flex overflow-x-auto snap-x snap-mandatory scrollbar-hide px-5 gap-4 pb-2">
+            <CardItem styleType="white" name="Adam Benabdelhak" number="**6927" type="Physique" />
+            <CardItem styleType="dark" name="Éphémère" number="**1234" type="Virtuelle" />
+            <CardItem styleType="premium" name="Premium" number="**9999" type="Originale" />
+          </div>
+        </div>
+
+        {/* Comptes List */}
+        <div className="px-4">
+          <h3 className="text-[16px] font-semibold text-white mb-3 pl-1">Comptes et autres</h3>
+          <div className="bg-[#1c2b43] rounded-[24px] p-2 border border-white/5 flex flex-col shadow-lg">
+            <AccountRow 
+              icon="🇲🇦" 
+              label="Dirham Marocain" 
+              balance={`${formatMoney(balances.MAD)} MAD`} 
+            />
+            <AccountRow 
+              icon="🇪🇺" 
+              label="Euro" 
+              balance={`${formatMoney(balances.EUR)} EUR`} 
+            />
+            <AccountRow 
+              isComponent 
+              icon={<PiggyBank size={18} />} 
+              label="Coffres" 
+              balance="0,00 MAD" 
+            />
+            <AccountRow 
+              isComponent 
+              icon={<BarChart3 size={18} />} 
+              label="Investir" 
+              balance="0,00 MAD" 
+            />
+            <AccountRow 
+              isComponent 
+              icon={<Bitcoin size={18} />} 
+              label="Cryptos" 
+              balance="0,00 MAD" 
+              isLast
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Home Indicator */}
+      <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-[120px] h-[5px] bg-white/80 rounded-full"></div>
+    </div>
+  );
+}
+
+function CardItem({ styleType, name, number, type }: any) {
+  let bgClass = '';
+  let textClass = 'text-white';
+  
+  if (styleType === 'white') { 
+    bgClass = 'bg-[#f8f9fa] shadow-sm text-black'; 
+    textClass = 'text-black'; 
+  } else if (styleType === 'dark') { 
+    bgClass = 'bg-[#18233A] border border-[#a5b9fc]/20 text-white'; 
+  } else if (styleType === 'premium') { 
+    bgClass = 'bg-gradient-to-br from-[#8A2387] via-[#E94057] to-[#F27121] text-white'; 
+  }
+
+  return (
+    <div className={`shrink-0 w-[240px] h-[150px] snap-center rounded-[20px] p-5 flex flex-col justify-between relative overflow-hidden ${bgClass} ${textClass}`}>
+      <div className="flex justify-between items-start">
+        <div className="font-extrabold tracking-widest text-[14px] italic opacity-90 relative top-1">MOBEN</div>
+        <span className="text-[10px] uppercase font-bold px-2 py-1 bg-white/20 rounded-[6px] backdrop-blur-sm border border-white/10 shadow-sm">{type}</span>
+      </div>
+      <div className="flex flex-col">
+        <div className="font-mono tracking-[0.2em] text-[15px] opacity-80 mb-1.5">{number}</div>
+        <div className="flex justify-between items-end">
+          <span className="text-[13px] font-semibold truncate pr-2 opacity-90">{name}</span>
+          <div className="italic font-bold text-[18px] opacity-90">VISA</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AccountRow({ icon, label, balance, isComponent, isLast }: any) {
+  return (
+    <div className={`flex items-center justify-between p-3 border-b border-white/5 ${isLast ? 'border-0' : ''}`}>
+      <div className="flex items-center gap-3">
+        <div className="w-[42px] h-[42px] rounded-full bg-white/[0.03] border border-white/[0.05] flex items-center justify-center text-[20px] shrink-0">
+          {isComponent ? <div className="text-[#3b82f6] relative top-[1px]">{icon}</div> : <span className="relative top-[1px]">{icon}</span>}
+        </div>
+        <span className="text-[15px] font-medium text-white tracking-wide">{label}</span>
+      </div>
+      <span className="text-[15px] font-semibold text-white">{balance}</span>
     </div>
   );
 }
@@ -325,7 +460,6 @@ function AddMoney({ setCurrentView, activeAccount, currentBalance, onAddMoney }:
 
   return (
     <div className="flex flex-col h-full animate-in slide-in-from-right-4 duration-300 relative">
-      {/* Header */}
       <div className="flex items-center px-4 pt-2 pb-4">
         <button onClick={() => setCurrentView('dashboard')} className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 transition shrink-0">
           <ChevronLeft size={24} className="text-white" />
@@ -336,7 +470,6 @@ function AddMoney({ setCurrentView, activeAccount, currentBalance, onAddMoney }:
         </div>
       </div>
 
-      {/* Center Amount Input */}
       <div className="flex-1 flex flex-col items-center justify-center -mt-10">
         <div className="flex items-baseline justify-center px-4 w-full">
           <input 
@@ -350,7 +483,6 @@ function AddMoney({ setCurrentView, activeAccount, currentBalance, onAddMoney }:
           <span className="text-[32px] font-semibold text-white/70 ml-2 relative shrink-0">{activeAccount}</span>
         </div>
         
-        {/* Payment Method Selector */}
         <button className="mt-8 flex items-center gap-2 bg-[#1c2b43] hover:bg-[#2a3c5a] border border-white/10 rounded-full px-5 py-2.5 transition">
           <div className="bg-white text-black rounded px-1.5 py-0.5 text-[10px] font-bold flex items-center gap-0.5">
             <svg viewBox="0 0 384 512" className="w-[10px] h-[10px]" fill="currentColor"><path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.3 47.1-.8 81.2-82.6 81.2-82.6-43.1-15.6-59.8-59.5-59.8-105.7M249.4 72.3c4.6-21.2-12.8-50.5-38.3-64.3-11.4 34.3-43.2 59-67.6 59-4 22.8 13.9 50 39.8 63 11-34.5 45.4-56.1 66.1-57.7"/></svg>
@@ -361,7 +493,6 @@ function AddMoney({ setCurrentView, activeAccount, currentBalance, onAddMoney }:
         </button>
       </div>
 
-      {/* Footer Area */}
       <div className="px-5 pb-8 pt-4">
         <p className="text-center text-[12px] text-white/50 font-medium mb-4">Arrivée · Généralement instantanée</p>
         <button 
@@ -371,8 +502,6 @@ function AddMoney({ setCurrentView, activeAccount, currentBalance, onAddMoney }:
           <span className="font-bold text-[16px]">Confirmer le dépôt</span>
         </button>
       </div>
-      
-      {/* Home Indicator */}
       <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-[120px] h-[5px] bg-white/80 rounded-full"></div>
     </div>
   );
@@ -389,12 +518,11 @@ function Transfer({ setCurrentView, balances, onTransfer }: any) {
   const target = source === 'EUR' ? 'MAD' : 'EUR';
   const amount = parseFloat(amountStr.replace(',', '.')) || 0;
   
-  // Calculate Target Amount
   const targetAmount = source === 'EUR' ? amount * EXCHANGE_RATE : amount / EXCHANGE_RATE;
 
   const handleFlip = () => {
     setSource(target);
-    setAmountStr(''); // Reset input on flip for clarity
+    setAmountStr(''); 
     setStep('input');
   };
 
@@ -424,7 +552,6 @@ function Transfer({ setCurrentView, balances, onTransfer }: any) {
 
       <div className="px-4 mt-6">
         <div className="relative">
-          {/* Source Block */}
           <div className="bg-[#1c2b43] rounded-t-[20px] p-5 pb-8 flex items-center justify-between border border-white/5 border-b-0">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-full bg-opacity-20 border border-white/10 flex items-center justify-center text-[16px] overflow-hidden">
@@ -457,7 +584,6 @@ function Transfer({ setCurrentView, balances, onTransfer }: any) {
             </div>
           </div>
           
-          {/* Center Flip Button */}
           <div 
              onClick={handleFlip}
              className="absolute top-1/2 left-6 -translate-y-1/2 w-10 h-10 rounded-full bg-[#3b82f6] border-[4px] border-[#0A1530] flex items-center justify-center z-10 shadow-[0_4px_12px_rgba(59,130,246,0.3)] cursor-pointer hover:scale-105 transition"
@@ -465,7 +591,6 @@ function Transfer({ setCurrentView, balances, onTransfer }: any) {
             <ArrowDown size={18} className="text-white" />
           </div>
 
-          {/* Target Block */}
           <div className="bg-[#2a3c5a] rounded-b-[20px] p-5 pt-8 flex items-center justify-between border border-white/5 border-t-0">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-full bg-opacity-20 border border-white/10 flex items-center justify-center text-[16px] overflow-hidden">
@@ -487,7 +612,6 @@ function Transfer({ setCurrentView, balances, onTransfer }: any) {
           </div>
         </div>
 
-        {/* Note Input */}
         <div className="mt-4 bg-[#1c2b43] rounded-[16px] h-[52px] flex items-center px-4 border border-white/5">
           <input
             type="text"
@@ -497,7 +621,6 @@ function Transfer({ setCurrentView, balances, onTransfer }: any) {
         </div>
       </div>
 
-      {/* Footer Area */}
       <div className="mt-auto px-4 pb-8 flex items-center gap-3">
         <button className="w-[52px] h-[52px] rounded-full bg-[#1c2b43] border border-white/5 flex items-center justify-center shrink-0">
           <Settings size={22} className="text-[#94a3b8]" />
@@ -514,7 +637,6 @@ function Transfer({ setCurrentView, balances, onTransfer }: any) {
         </button>
       </div>
 
-      {/* Home Indicator */}
       <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-[120px] h-[5px] bg-white/80 rounded-full"></div>
     </div>
   );
@@ -526,7 +648,6 @@ function Transfer({ setCurrentView, balances, onTransfer }: any) {
 function BankDetails({ setCurrentView, activeAccount }: any) {
   return (
     <div className="flex flex-col h-full animate-in slide-in-from-right-4 duration-300 relative">
-      {/* Header */}
       <div className="flex flex-col px-4 pt-2 pb-4">
         <div className="flex items-center">
           <button onClick={() => setCurrentView('dashboard')} className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 transition shrink-0">
@@ -543,7 +664,6 @@ function BankDetails({ setCurrentView, activeAccount }: any) {
       </div>
 
       <div className="px-4 pb-16 flex-1 overflow-y-auto scrollbar-hide">
-        {/* Main Info Card */}
         <div className="bg-[#1c2b43] rounded-[24px] p-5 border border-white/5 flex flex-col gap-6">
           <InfoRow label="Bénéficiaire" value="Adam Benabdelhak" />
           <InfoRow label="IBAN" value={activeAccount === 'EUR' ? "FR76 1234 5678 9012 3456 7890 123" : "MA03 0000 0000 0000 0000 0000 000"} />
@@ -551,13 +671,11 @@ function BankDetails({ setCurrentView, activeAccount }: any) {
           <InfoRow label="Adresse de la banque" value="Revolut Bank UAB, Succursale Française, 12 rue de la Paix, 75002 Paris" />
         </div>
 
-        {/* Share Button */}
         <button className="w-full mt-4 bg-transparent border-[1.5px] border-white/20 hover:bg-white/5 transition text-white font-semibold py-3.5 rounded-[24px] text-[14px] flex items-center justify-center gap-2">
           <Share size={18} className="text-white" />
           Partager les informations
         </button>
 
-        {/* Info Blocks */}
         <div className="mt-6 flex flex-col gap-4 px-2">
           <div className="flex gap-4 items-start">
             <div className="w-8 h-8 rounded-full bg-[#1c2b43] flex items-center justify-center shrink-0">
@@ -581,7 +699,6 @@ function BankDetails({ setCurrentView, activeAccount }: any) {
         </div>
       </div>
 
-      {/* Home Indicator */}
       <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-[120px] h-[5px] bg-white/80 rounded-full"></div>
     </div>
   );
