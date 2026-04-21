@@ -17,8 +17,14 @@ const initialStocks = [
   { id: 'amzn', symbol: 'AMZN', bg: 'bg-[#131921] text-[#FF9900]', short: 'a' }
 ];
 
-export function Invest() {
+export function Invest({ setCurrentView }: any) {
   const [stocks, setStocks] = useState(initialStocks.map(s => ({ ...s, pct: (Math.random() * 5 - 1) })));
+  
+  const [newsList] = useState([
+    { id: 1, ticker: 'NVDA', title: 'Bloomberg: Nvidia domine les attentes de Wall Street grâce à l\'explosion de la demande en IA.', time: '14:30', source: 'Bloomberg', img: 'https://images.unsplash.com/photo-1614624532983-4ce03382d63d?q=80&w=200&auto=format&fit=crop' },
+    { id: 2, ticker: 'AAPL', title: 'Apple reports record Services revenue despite iPhone sales dip in key markets.', time: '12:15', source: 'StreetAccount', img: 'https://images.unsplash.com/photo-1621768216002-5ac171876607?q=80&w=200&auto=format&fit=crop' },
+    { id: 3, ticker: 'TSLA', title: 'Baisse des livraisons Tesla au dernier trimestre face aux régulations et à une concurrence accrue.', time: '09:45', source: 'Bloomberg', img: '' }
+  ]);
 
   useEffect(() => {
       const interval = setInterval(() => {
@@ -172,32 +178,26 @@ export function Invest() {
 
       {/* Actualités */}
       <div className="mt-8 px-4 mb-8">
-         <div className="flex justify-between items-center mb-4 cursor-pointer">
-             <h2 className="text-[15px] font-semibold text-[#94a3b8]">Actualités</h2>
-             <span className="text-[12px] text-[#3b82f6] font-semibold pr-1">Tout afficher</span>
+         <div className="flex justify-between items-center mb-4 cursor-pointer" onClick={() => setCurrentView('news_feed')}>
+             <h2 className="text-[17px] font-bold text-white tracking-tight">Actualités</h2>
+             <span className="text-[13px] text-[#3b82f6] font-semibold pr-1 hover:text-blue-400 transition-colors">Tout afficher</span>
          </div>
          <div className="flex flex-col gap-4">
-             <NewsCard 
-               ticker="UNH" 
-               pct={5.38} 
-               title="UnitedHealth relève ses prévisions de bénéfices annuels grâce à une forte croissance." 
-               time="Il y a 2h" 
-               imgBg="bg-blue-900"
-             />
-             <NewsCard 
-               ticker="AAPL" 
-               pct={1.24} 
-               title="Apple dévoile de nouvelles puces IA promettant des performances record." 
-               time="Il y a 3h" 
-               imgBg="bg-gray-800"
-             />
-             <NewsCard 
-               ticker="TSLA" 
-               pct={-2.10} 
-               title="Baisse des livraisons Tesla au dernier trimestre malgré des baisses de prix." 
-               time="Il y a 5h" 
-               imgBg="bg-[url('https://images.unsplash.com/photo-1560958089-b8a1929cea89?q=80&w=200&auto=format&fit=crop')] bg-cover bg-center"
-             />
+             {newsList.map(n => {
+                 const matchingStock = stocks.find(s => s.symbol === n.ticker);
+                 const pct = matchingStock ? matchingStock.pct : 0;
+                 return (
+                   <NewsCard 
+                     key={n.id}
+                     ticker={n.ticker} 
+                     pct={pct} 
+                     title={n.title} 
+                     time={n.time}
+                     source={n.source}
+                     img={n.img}
+                   />
+                 )
+             })}
          </div>
       </div>
 
@@ -268,24 +268,35 @@ function CommodityRow({ symbol, name, price, pct, buyPct, icon, isLast }: any) {
   );
 }
 
-function NewsCard({ ticker, pct, title, time, imgBg }: any) {
+function NewsCard({ ticker, pct, title, time, source, img }: any) {
   const isPos = pct >= 0;
   return (
     <motion.div 
       whileTap={{ scale: 0.98 }}
-      className="bg-[#1c2b43] rounded-[24px] p-4 flex gap-4 cursor-pointer border border-white/5 shadow-md"
+      className="bg-[#1c2b43] rounded-[24px] p-4 flex gap-4 cursor-pointer border border-white/5 shadow-md group"
     >
        <div className="flex-1 flex flex-col justify-between">
           <div>
-            <div className={`text-[10px] font-bold inline-block px-1.5 py-0.5 rounded-[4px] mb-2 uppercase tracking-wide ${isPos ? 'text-green-400 bg-green-400/10' : 'text-red-400 bg-red-400/10'}`}>
-               {ticker} {isPos ? '+' : ''}{pct.toFixed(2)}%
+            <div className={`text-[10px] font-bold inline-block px-1.5 py-0.5 rounded-[4px] mb-2 tracking-wide overflow-hidden ${isPos ? 'text-green-400 bg-green-500/10' : 'text-red-400 bg-red-500/10'}`}>
+               <motion.span 
+                 key={pct}
+                 initial={{ color: isPos ? "#4ade80" : "#f87171" }}
+                 animate={{ color: isPos ? "#4ade80" : "#f87171" }}
+                 transition={{ duration: 0.5 }}
+               >
+                 {ticker} {isPos ? '+' : ''}{pct.toFixed(2)}%
+               </motion.span>
             </div>
-            <h3 className="text-[13px] font-bold text-white leading-snug line-clamp-3">{title}</h3>
+            <h3 className="text-[13px] font-bold text-white leading-snug line-clamp-3 group-hover:text-blue-400 transition-colors">{title}</h3>
           </div>
-          <span className="text-[10px] text-[#94a3b8] font-semibold mt-3 uppercase tracking-wide">{time} · MOBEN ACTUALITÉS</span>
+          <span className="text-[10.5px] text-[#94a3b8] font-semibold mt-3 tracking-wide">aujourd'hui, {time} · <span className="uppercase">{source}</span></span>
        </div>
-       <div className={`w-[72px] h-[72px] rounded-[16px] shrink-0 flex items-center justify-center shadow-inner ${imgBg}`}>
-          {!imgBg.includes('url') && <Newspaper size={24} className="text-white/20" />}
+       <div className={`w-[72px] h-[72px] rounded-[16px] shrink-0 flex items-center justify-center shadow-inner overflow-hidden border border-white/5 ${img ? 'bg-transparent' : 'bg-[#0f172a]'}`}>
+          {img ? (
+             <img src={img} alt="preview" className="w-full h-full object-cover" />
+          ) : (
+             <Newspaper size={24} className="text-white/20" />
+          )}
        </div>
     </motion.div>
   );

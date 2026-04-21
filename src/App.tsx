@@ -23,7 +23,8 @@ import {
   Coins,
   Link as LinkIcon,
   HandCoins,
-  CheckCircle2
+  CheckCircle2,
+  Newspaper
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -122,14 +123,14 @@ export default function App() {
               )}
               {currentView === 'invest' && (
                 <motion.div key="invest" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full absolute inset-0 bg-[#0A1530]">
-                  <Invest />
+                  <Invest setCurrentView={setCurrentView} />
                 </motion.div>
               )}
             </AnimatePresence>
           </div>
 
           <AnimatePresence>
-            {currentView !== 'dashboard' && currentView !== 'invest' && (
+            {currentView !== 'dashboard' && currentView !== 'invest' && currentView !== 'news_feed' && (
               <motion.div 
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -141,6 +142,27 @@ export default function App() {
           </AnimatePresence>
 
           <AnimatePresence>
+            {currentView === 'news_feed' && (
+              <motion.div 
+                key="news_feed" 
+                initial={{ y: "100%" }} 
+                animate={{ y: 0 }} 
+                exit={{ y: "100%" }} 
+                transition={{ type: "spring", stiffness: 400, damping: 25 }} 
+                className="h-full absolute inset-0 bg-[#0A1530] z-50 flex flex-col"
+              >
+                <div className="px-4 py-4 flex items-center border-b border-white/10 shrink-0">
+                  <button onClick={() => setCurrentView('invest')} className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 transition shrink-0">
+                    <ChevronLeft size={24} className="text-white" />
+                  </button>
+                  <h2 className="text-[18px] font-bold text-white ml-2">Actualités Moben</h2>
+                </div>
+                <div className="flex-1 p-4 flex flex-col items-center justify-center text-[#94a3b8] gap-4">
+                  <Newspaper size={48} className="text-white/20" />
+                  <span>Flux d'actualités Bloomberg en préparation...</span>
+                </div>
+              </motion.div>
+            )}
             {currentView === 'patrimoine_comptes' && (
               <PatrimoineComptes 
                 key="patrimoine"
