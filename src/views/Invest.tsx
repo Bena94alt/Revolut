@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { 
   Search, Globe, ChevronRight, BarChart3, Newspaper, 
   TrendingUp, TrendingDown, Briefcase, FileText, Activity, PieChart,
@@ -17,23 +17,90 @@ const initialStocks = [
   { id: 'amzn', symbol: 'AMZN', bg: 'bg-[#131921] text-[#FF9900]', short: 'a' }
 ];
 
+const BLOOMBERG_HEADLINES = [
+  "La Fed maintient ses taux, les marchés Tech réagissent positivement.",
+  "NVIDIA dépasse les prévisions de croissance au T1, l'action grimpe.",
+  "Le Brent se stabilise après l'annonce de l'OPEP+.",
+  "Les investisseurs se tournent vers l'Or face à l'incertitude globale.",
+  "Amazon annonce un investissement record dans ses centres de données IA.",
+  "Tesla : Elon Musk annonce une nouvelle architecture logicielle pour le FSD.",
+  "Bourse : Les marchés asiatiques clôturent en hausse après les PMI.",
+  "Google : Alphabet teste de nouveaux modèles de monétisation pour YouTube.",
+  "Microsoft dépasse les attentes de revenus grâce au Cloud Azure.",
+  "Meta : Zuckerberg mise sur les lunettes connectées AR pour 2025.",
+  "Netflix : Croissance record du nombre d'abonnés grâce au partage de compte payant.",
+  "Rheinmetall : Les commandes d'armement atteignent un niveau historique en Europe.",
+  "Pétrole : Les tensions au Moyen-Orient poussent le baril au-dessus de 85$.",
+  "Or : Nouveau sommet historique atteint face à la faiblesse du dollar."
+];
+
+const TICKERS = ["NVDA", "AAPL", "AMZN", "TSLA", "NFLX", "MSFT", "META", "GOOGL", "BRENT", "GOLD", "RHM"];
+
+function getRandomInt(min: number, max: number) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
 export function Invest({ setCurrentView }: any) {
   const [stocks, setStocks] = useState(initialStocks.map(s => ({ ...s, pct: (Math.random() * 5 - 1) })));
-  
-  const [newsList] = useState([
-    { id: 1, ticker: 'NVDA', title: 'Bloomberg: Nvidia domine les attentes de Wall Street grâce à l\'explosion de la demande en IA.', time: '14:30', source: 'Bloomberg', img: 'https://images.unsplash.com/photo-1614624532983-4ce03382d63d?q=80&w=200&auto=format&fit=crop' },
-    { id: 2, ticker: 'AAPL', title: 'Apple reports record Services revenue despite iPhone sales dip in key markets.', time: '12:15', source: 'StreetAccount', img: 'https://images.unsplash.com/photo-1621768216002-5ac171876607?q=80&w=200&auto=format&fit=crop' },
-    { id: 3, ticker: 'TSLA', title: 'Baisse des livraisons Tesla au dernier trimestre face aux régulations et à une concurrence accrue.', time: '09:45', source: 'Bloomberg', img: '' }
-  ]);
+  const [activeNews, setActiveNews] = useState<any[]>([]);
+  const [isUpdating, setIsUpdating] = useState(false);
+
+  const refreshBloombergNews = () => {
+    setIsUpdating(true);
+    
+    // Pick 5-7 random headlines
+    const count = getRandomInt(5, 7);
+    const shuffled = [...BLOOMBERG_HEADLINES].sort(() => 0.5 - Math.random());
+    const selectedHeadlines = shuffled.slice(0, count);
+    
+    const newNews = selectedHeadlines.map((headline, index) => {
+      // Random ticker from the pool
+      const ticker = TICKERS[getRandomInt(0, TICKERS.length - 1)];
+      // Random percentage
+      const pct = (Math.random() * 8 - 4).toFixed(2);
+      
+      // Relative timestamps
+      let timeText = "À l'instant";
+      if (index === 1) timeText = "il y a 5 min";
+      if (index === 2) timeText = "il y a 12 min";
+      if (index === 3) timeText = "il y a 20 min";
+      if (index > 3) timeText = `il y a ${index * 8} min`;
+
+      return {
+        id: Math.random(),
+        title: headline,
+        ticker,
+        pct,
+        time: timeText,
+      };
+    });
+
+    setActiveNews(newNews);
+    
+    // Visual feedback duration
+    setTimeout(() => setIsUpdating(false), 2000);
+  };
 
   useEffect(() => {
-      const interval = setInterval(() => {
-          setStocks(prev => prev.map(s => {
-              const diff = (Math.random() * 0.1 - 0.05);
-              return { ...s, pct: s.pct + diff };
-          }));
-      }, 2000);
-      return () => clearInterval(interval);
+    // Initial load
+    refreshBloombergNews();
+
+    // Refresh every 20 minutes (1200000 ms)
+    const newsInterval = setInterval(() => {
+      refreshBloombergNews();
+    }, 1200000);
+
+    const stockInterval = setInterval(() => {
+      setStocks(prev => prev.map(s => {
+        const diff = (Math.random() * 0.1 - 0.05);
+        return { ...s, pct: s.pct + diff };
+      }));
+    }, 2000);
+
+    return () => {
+      clearInterval(newsInterval);
+      clearInterval(stockInterval);
+    };
   }, []);
 
   const products = [
@@ -184,21 +251,17 @@ export function Invest({ setCurrentView }: any) {
              <span className="text-[13px] text-[#3b82f6] font-semibold pr-1 hover:text-blue-400 transition-colors">Tout afficher</span>
          </div>
          <div className="flex flex-col gap-4">
-             {newsList.map(n => {
-                 const matchingStock = stocks.find(s => s.symbol === n.ticker);
-                 const pct = matchingStock ? matchingStock.pct : 0;
-                 return (
-                   <NewsCard 
-                     key={n.id}
-                     ticker={n.ticker} 
-                     pct={pct} 
-                     title={n.title} 
-                     time={n.time}
-                     source={n.source}
-                     img={n.img}
-                   />
-                 )
-             })}
+             <AnimatePresence mode="popLayout">
+               {activeNews.map(n => (
+                 <NewsCard 
+                   key={n.id}
+                   ticker={n.ticker} 
+                   pct={n.pct} 
+                   title={n.title} 
+                   time={n.time}
+                 />
+               ))}
+             </AnimatePresence>
          </div>
       </div>
 
@@ -269,36 +332,35 @@ function CommodityRow({ symbol, name, price, pct, buyPct, icon, isLast }: any) {
   );
 }
 
-function NewsCard({ ticker, pct, title, time, source, img }: any) {
-  const isPos = pct >= 0;
+function NewsCard({ ticker, pct, title, time }: any) {
+  const numericPct = parseFloat(pct);
+  const isPos = numericPct >= 0;
+  
   return (
     <motion.div 
+      layout
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.95 }}
       whileTap={{ scale: 0.98 }}
-      className="bg-[#1c2b43] rounded-[24px] p-4 flex gap-4 cursor-pointer border border-white/5 shadow-md group"
+      className="bg-[#1c2b43] rounded-[24px] p-5 flex flex-col gap-3 cursor-pointer border border-white/5 shadow-md group relative overflow-hidden"
     >
-       <div className="flex-1 flex flex-col justify-between">
-          <div>
-            <div className={`text-[10px] font-bold inline-block px-1.5 py-0.5 rounded-[4px] mb-2 tracking-wide overflow-hidden ${isPos ? 'text-green-400 bg-green-500/10' : 'text-red-400 bg-red-500/10'}`}>
-               <motion.span 
-                 key={pct}
-                 initial={{ color: isPos ? "#4ade80" : "#f87171" }}
-                 animate={{ color: isPos ? "#4ade80" : "#f87171" }}
-                 transition={{ duration: 0.5 }}
-               >
-                 {ticker} {isPos ? '+' : ''}{pct.toFixed(2)}%
-               </motion.span>
+       <div className="flex justify-between items-start z-10">
+          <div className="flex flex-col gap-1">
+            <span className="text-[9px] font-black text-[#94a3b8] tracking-[0.15em] uppercase opacity-70">BLOOMBERG TERMINAL</span>
+            <div className={`text-[10px] font-bold inline-flex items-center gap-1 px-2 py-0.5 rounded-[6px] w-fit ${isPos ? 'text-green-400 bg-green-500/10' : 'text-red-400 bg-red-500/10'}`}>
+                {ticker} {isPos ? '+' : ''}{numericPct.toFixed(2)}%
             </div>
-            <h3 className="text-[13px] font-bold text-white leading-snug line-clamp-3 group-hover:text-blue-400 transition-colors">{title}</h3>
           </div>
-          <span className="text-[10.5px] text-[#94a3b8] font-semibold mt-3 tracking-wide">aujourd'hui, {time} · <span className="uppercase">{source}</span></span>
+          <span className="text-[10px] text-[#94a3b8] font-bold uppercase tracking-tight opacity-50">{time}</span>
        </div>
-       <div className={`w-[72px] h-[72px] rounded-[16px] shrink-0 flex items-center justify-center shadow-inner overflow-hidden border border-white/5 ${img ? 'bg-transparent' : 'bg-[#0f172a]'}`}>
-          {img ? (
-             <img src={img} alt="preview" className="w-full h-full object-cover" />
-          ) : (
-             <Newspaper size={24} className="text-white/20" />
-          )}
-       </div>
+       
+       <h3 className="text-[14px] font-bold text-white leading-[1.4] line-clamp-2 group-hover:text-[#3b82f6] transition-colors z-10 pr-2">
+         {title}
+       </h3>
+
+       {/* Decorative subtle pulse logic gradient */}
+       <div className="absolute top-0 right-0 w-[120px] h-full bg-gradient-to-l from-[#3b82f6]/5 to-transparent pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity"></div>
     </motion.div>
   );
 }
