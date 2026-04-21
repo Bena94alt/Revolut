@@ -253,10 +253,10 @@ function Dashboard({ setCurrentView, balances, activeAccount, setActiveAccount }
               Adam Benabdelhak - MAD
             </p>
             <div className="flex items-baseline justify-center mb-6">
-              <span className="text-[52px] font-bold tracking-tight leading-none text-white whitespace-nowrap">
+              <span className="text-[40px] font-bold tracking-tight leading-none text-white whitespace-nowrap">
                 {formatMoney(balances.MAD)}
               </span>
-              <span className="text-[26px] font-medium tracking-wide text-white/50 ml-1.5">MAD</span>
+              <span className="text-[20px] font-medium tracking-wide text-white/50 ml-1.5">MAD</span>
             </div>
             <button 
               onClick={() => setCurrentView('patrimoine_comptes')}
@@ -272,10 +272,10 @@ function Dashboard({ setCurrentView, balances, activeAccount, setActiveAccount }
               Adam Benabdelhak - EUR
             </p>
             <div className="flex items-baseline justify-center mb-6">
-              <span className="text-[52px] font-bold tracking-tight leading-none text-white whitespace-nowrap">
+              <span className="text-[40px] font-bold tracking-tight leading-none text-white whitespace-nowrap">
                 {formatMoney(balances.EUR)}
               </span>
-              <span className="text-[26px] font-medium tracking-wide text-white/50 ml-1.5">EUR</span>
+              <span className="text-[20px] font-medium tracking-wide text-white/50 ml-1.5">EUR</span>
             </div>
             <button 
               onClick={() => setCurrentView('patrimoine_comptes')}
@@ -458,10 +458,10 @@ function PatrimoineComptes({ setCurrentView, balances }: any) {
             Patrimoine total <ChevronRight size={14} className="ml-0.5 relative top-[1px]" />
           </div>
           <div className="flex items-baseline justify-center">
-            <span className="text-[44px] font-bold tracking-tight text-white whitespace-nowrap">
+            <span className="text-[36px] font-bold tracking-tight text-white whitespace-nowrap">
               {formatMoney(totalMAD)}
             </span>
-            <span className="text-[22px] font-medium text-white/50 ml-1.5">MAD</span>
+            <span className="text-[18px] font-medium text-white/50 ml-1.5">MAD</span>
           </div>
         </div>
 
