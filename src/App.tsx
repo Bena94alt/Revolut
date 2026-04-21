@@ -24,7 +24,11 @@ import {
   Link as LinkIcon,
   HandCoins,
   CheckCircle2,
-  Newspaper
+  Newspaper,
+  MessageSquare,
+  Send,
+  ArrowUpCircle,
+  ArrowDownCircle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -42,12 +46,12 @@ const formatMoney = (amount: number) => {
   }).format(amount);
 };
 
-const CONTACTS = [
-  { id: 1, name: "Ghali Berrada", initials: "GB", bg: "bg-blue-500", transaction: "Vous avez envoyé 80 MAD", date: "Hier" },
-  { id: 2, name: "Kamil Lahlou", initials: "KL", bg: "bg-teal-500", transaction: "Vous a envoyé 150 MAD", date: "2 jours" },
-  { id: 3, name: "Ghita Benjelloun", initials: "GB", bg: "bg-orange-500", transaction: "Vous avez envoyé 45 MAD", date: "Lundi" },
-  { id: 4, name: "Abdellah Karim", initials: "AK", bg: "bg-purple-500", transaction: "Vous avez envoyé 200 MAD", date: "5 janv." },
-  { id: 5, name: "Adam Benabdelhak", initials: "AB", bg: "bg-[#3b82f6]", transaction: "Vous a envoyé 10 MAD", date: "24 déc." }
+const INITIAL_CONTACTS = [
+  { id: 1, name: "Ghali Berrada", initials: "GB", bg: "bg-blue-500", transaction: "Vous avez envoyé 80 MAD", date: "Hier", type: 'sent', amount: '80' },
+  { id: 2, name: "Kamil Lahlou", initials: "KL", bg: "bg-teal-500", transaction: "Vous a envoyé 150 MAD", date: "2 jours", type: 'received', amount: '150' },
+  { id: 3, name: "Ghita Benjelloun", initials: "GB", bg: "bg-orange-500", transaction: "Vous avez envoyé 45 MAD", date: "Lundi", type: 'sent', amount: '45' },
+  { id: 4, name: "Abdellah Karim", initials: "AK", bg: "bg-purple-500", transaction: "Vous avez envoyé 200 MAD", date: "5 janv.", type: 'sent', amount: '200' },
+  { id: 5, name: "Adam Benabdelhak", initials: "AB", bg: "bg-[#3b82f6]", transaction: "Vous a envoyé 10 MAD", date: "24 déc.", type: 'received', amount: '10' }
 ];
 
 const formatMoneyParts = (amount: number) => {
@@ -67,7 +71,27 @@ export default function App() {
   const [currentView, setCurrentView] = useState('dashboard');
   const [investments, setInvestments] = useState<Record<string, number>>({});
   const [selectedContact, setSelectedContact] = useState<any>(null);
+  const [contacts, setContacts] = useState(INITIAL_CONTACTS);
+  const [showSearch, setShowSearch] = useState(false);
   
+  // Chat History State
+  const [contactMessages, setContactMessages] = useState<Record<number, any[]>>(() => {
+    const initial: Record<number, any[]> = {};
+    INITIAL_CONTACTS.forEach(c => {
+      initial[c.id] = [
+        { 
+          id: `init-${c.id}`, 
+          type: 'transaction', 
+          amount: c.amount, 
+          date: c.date, 
+          sender: c.type === 'sent' ? 'me' : 'them',
+          status: 'Réussie'
+        }
+      ];
+    });
+    return initial;
+  });
+
   // Global Financial State
   const [balances, setBalances] = useState({
     MAD: 0.01,
@@ -83,6 +107,44 @@ export default function App() {
       ...prev,
       [currency]: prev[currency] + amount
     }));
+  };
+
+  const sendMessage = (contactId: number, message: any) => {
+    setContactMessages(prev => ({
+      ...prev,
+      [contactId]: [...(prev[contactId] || []), { ...message, id: Date.now().toString(), timestamp: new Date() }]
+    }));
+
+    // Update the contact list summary
+    setContacts(prev => prev.map(c => {
+      if (c.id === contactId) {
+        let lastAction = "";
+        if (message.type === 'transaction') {
+          lastAction = message.sender === 'me' ? `Vous avez envoyé ${message.amount} MAD` : `Vous a envoyé ${message.amount} MAD`;
+        } else {
+          lastAction = message.sender === 'me' ? `Vous: ${message.content}` : message.content;
+        }
+        return { 
+          ...c, 
+          transaction: lastAction, 
+          date: "Maintenant",
+          amount: message.type === 'transaction' ? message.amount : c.amount,
+          type: message.type === 'transaction' ? (message.sender === 'me' ? 'sent' : 'received') : c.type
+        };
+      }
+      return c;
+    }));
+
+    // If it's a transaction sent by me, deduct balance
+    if (message.type === 'transaction' && message.sender === 'me') {
+      const amt = parseFloat(message.amount);
+      if (!isNaN(amt)) {
+        setBalances(prev => ({
+          ...prev,
+          MAD: prev.MAD - amt
+        }));
+      }
+    }
   };
 
   const transferMoney = (sourceCurrency: 'MAD' | 'EUR', amount: number) => {
@@ -207,6 +269,18 @@ export default function App() {
                 key="virements"
                 setCurrentView={setCurrentView}
                 setSelectedContact={setSelectedContact}
+                contacts={contacts}
+                onAddContactClick={() => setShowSearch(true)}
+              />
+            )}
+            {currentView === 'chat_view' && (
+              <ChatView 
+                key="chat_view"
+                setCurrentView={setCurrentView}
+                contact={selectedContact}
+                messages={selectedContact ? contactMessages[selectedContact.id] : []}
+                onSendMessage={sendMessage}
+                balances={balances}
               />
             )}
             {currentView === 'contact_transfer' && (
@@ -225,6 +299,18 @@ export default function App() {
             )}
           </AnimatePresence>
         </div>
+
+        <AnimatePresence>
+          {showSearch && (
+            <MobenTagSearch 
+              onClose={() => setShowSearch(false)}
+              onAddContact={(newContact) => {
+                setContacts(prev => [newContact, ...prev]);
+                setShowSearch(false);
+              }}
+            />
+          )}
+        </AnimatePresence>
 
         {/* Bottom Navigation Bar */}
         <AnimatePresence>
@@ -1136,7 +1222,7 @@ function InfoRow({ label, value }: { label: string, value: string }) {
   );
 }
 
-function Virements({ setCurrentView, setSelectedContact }: any) {
+function Virements({ setCurrentView, setSelectedContact, contacts, onAddContactClick }: any) {
   return (
     <motion.div 
       initial={{ x: "100%" }}
@@ -1160,7 +1246,7 @@ function Virements({ setCurrentView, setSelectedContact }: any) {
       </div>
       
       <div className="flex-1 overflow-y-auto scrollbar-hide pb-[100px] bg-[#0A1530]">
-        <div className="px-5 py-4">
+        <div className="px-5 py-4 cursor-pointer" onClick={onAddContactClick}>
            <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                  <div className="w-[46px] h-[46px] rounded-full bg-[#3b82f6]/20 border border-[#3b82f6]/30 flex items-center justify-center text-[#3b82f6] shrink-0">
@@ -1177,11 +1263,11 @@ function Virements({ setCurrentView, setSelectedContact }: any) {
 
         <div className="px-5">
            <div className="h-[1px] w-full bg-white/5 mb-2 mt-1"></div>
-           {CONTACTS.map((contact, i) => (
+           {contacts.map((contact: any) => (
              <motion.div 
                whileTap={{ scale: 0.98 }}
                key={contact.id} 
-               onClick={() => { setSelectedContact(contact); setCurrentView('contact_transfer'); }}
+               onClick={() => { setSelectedContact(contact); setCurrentView('chat_view'); }}
                className="flex items-center justify-between py-3.5 cursor-pointer"
              >
                <div className="flex items-center gap-4">
@@ -1195,7 +1281,11 @@ function Virements({ setCurrentView, setSelectedContact }: any) {
                  </div>
                  <div className="flex flex-col gap-0.5">
                    <h3 className="text-white font-semibold text-[15px]">{contact.name}</h3>
-                   <p className="text-[#94a3b8] text-[13px]">{contact.transaction}</p>
+                   {contact.mobenTag ? (
+                      <p className="text-[#3b82f6] text-[12px] font-medium leading-none mb-1">@{contact.mobenTag}</p>
+                   ) : (
+                      <p className="text-[#94a3b8] text-[13px]">{contact.transaction}</p>
+                   )}
                  </div>
                </div>
                <span className="text-[#94a3b8] text-[12px] font-medium">{contact.date}</span>
@@ -1205,6 +1295,322 @@ function Virements({ setCurrentView, setSelectedContact }: any) {
       </div>
     </motion.div>
   )
+}
+
+function MobenTagSearch({ onClose, onAddContact }: { onClose: () => void, onAddContact: (c: any) => void }) {
+  const [query, setQuery] = useState('');
+  
+  // Logic: "Bena94alt" -> show Adam Benabdelhak
+  const normalizedQuery = query.startsWith('@') ? query.slice(1).toLowerCase() : query.toLowerCase();
+  const showResult = normalizedQuery === 'bena94alt';
+
+  const handleAdd = () => {
+    onAddContact({
+      id: Date.now(),
+      name: "Adam Benabdelhak",
+      initials: "AB",
+      bg: "bg-[#3b82f6]",
+      transaction: "Nouveau contact",
+      date: "Aujourd'hui",
+      mobenTag: "Bena94alt",
+      type: 'received',
+      amount: '0'
+    });
+  };
+
+  return (
+    <motion.div 
+      initial={{ y: "100%" }}
+      animate={{ y: 0 }}
+      exit={{ y: "100%" }}
+      transition={{ type: "spring", stiffness: 400, damping: 30 }}
+      className="fixed inset-0 z-[60] bg-[#050A1A] flex flex-col"
+    >
+      <div className="px-5 pt-6 pb-2">
+         <div className="flex items-center mb-6">
+            <button onClick={onClose} className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 transition shrink-0">
+               <ChevronLeft size={24} className="text-white" />
+            </button>
+            <h2 className="text-[18px] font-bold text-white ml-2 flex-1 text-center pr-10">Ajouter via MobenTag</h2>
+         </div>
+
+         <div className="bg-[#1c2b43] rounded-[20px] flex items-center px-5 py-4 border border-white/10 focus-within:border-[#3b82f6] transition shadow-lg">
+            <span className="text-[#3b82f6] text-[20px] font-bold mr-1">@</span>
+            <input 
+              autoFocus
+              type="text" 
+              placeholder="Tag de votre ami" 
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className="bg-transparent border-none outline-none text-white text-[18px] w-full font-semibold placeholder-white/20" 
+            />
+         </div>
+
+         <div className="mt-8">
+            <p className="text-[#94a3b8] text-[13px] font-medium mb-4 px-1">RÉSULTATS</p>
+            
+            <AnimatePresence>
+               {showResult ? (
+                 <motion.div 
+                   initial={{ opacity: 0, scale: 0.95 }}
+                   animate={{ opacity: 1, scale: 1 }}
+                   className="bg-[#1c2b43] rounded-[24px] p-5 border border-white/5 flex items-center justify-between"
+                 >
+                   <div className="flex items-center gap-4">
+                      <div className="w-[52px] h-[52px] rounded-full bg-[#3b82f6] flex items-center justify-center text-white text-[20px] font-bold shadow-lg">
+                        AB
+                      </div>
+                      <div>
+                        <h3 className="text-white font-bold text-[16px]">Adam Benabdelhak</h3>
+                        <p className="text-[#3b82f6] text-[14px] font-medium">@Bena94alt</p>
+                      </div>
+                   </div>
+                   <button 
+                     onClick={handleAdd}
+                     className="w-10 h-10 rounded-full bg-[#3b82f6] flex items-center justify-center text-white shadow-lg"
+                   >
+                     <Plus size={24} strokeWidth={3} />
+                   </button>
+                 </motion.div>
+               ) : (
+                 <div className="flex flex-col items-center justify-center py-12 opacity-30">
+                    <Search size={48} className="text-white mb-3" />
+                    <p className="text-white font-medium text-[15px]">Cherchez un MobenTag</p>
+                 </div>
+               )}
+            </AnimatePresence>
+         </div>
+      </div>
+    </motion.div>
+  );
+}
+
+function ChatView({ setCurrentView, contact, messages = [], onSendMessage, balances }: any) {
+  const [msgText, setMsgText] = useState('');
+  const [showKeypad, setShowKeypad] = useState(false);
+  const [amountStr, setAmountStr] = useState('');
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages]);
+
+  if (!contact) return null;
+
+  const handleSendText = () => {
+    if (!msgText.trim()) return;
+    onSendMessage(contact.id, {
+      type: 'text',
+      content: msgText,
+      sender: 'me'
+    });
+    setMsgText('');
+  };
+
+  const handleSendMoney = () => {
+    const amt = parseFloat(amountStr);
+    if (isNaN(amt) || amt <= 0) return;
+    
+    // Check balance
+    if (amt > balances.MAD) {
+      alert("Solde insuffisant");
+      return;
+    }
+
+    onSendMessage(contact.id, {
+      type: 'transaction',
+      amount: amountStr,
+      sender: 'me',
+      status: 'Réussie',
+      date: "Aujourd'hui"
+    });
+    
+    setAmountStr('');
+    setShowKeypad(false);
+  };
+
+  const addDigit = (digit: string) => {
+    if (digit === '.' && amountStr.includes('.')) return;
+    if (amountStr === '0' && digit !== '.') {
+      setAmountStr(digit);
+    } else {
+      setAmountStr(prev => prev + digit);
+    }
+  };
+
+  const deleteDigit = () => {
+    setAmountStr(prev => prev.slice(0, -1));
+  };
+
+  return (
+    <motion.div 
+      initial={{ x: "100%" }}
+      animate={{ x: 0 }}
+      exit={{ x: "100%" }}
+      transition={{ type: "spring", stiffness: 400, damping: 25 }}
+      className="absolute inset-0 flex flex-col h-full bg-[#050A1A] z-40 overflow-hidden"
+    >
+      {/* Header */}
+      <div className="px-4 pt-4 pb-4 flex items-center bg-[#050A1A]/80 backdrop-blur-md border-b border-white/5 relative z-20">
+        <button onClick={() => setCurrentView('virements')} className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 transition shrink-0">
+          <ChevronLeft size={24} className="text-white" />
+        </button>
+        <div className="flex-1 flex flex-col items-center pr-10">
+           <div className="flex items-center gap-2">
+             <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-[12px] font-bold relative ${contact.bg}`}>
+               {contact.initials}
+               <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 border-2 border-[#050A1A] rounded-full"></div>
+             </div>
+             <div>
+               <h2 className="text-[15px] font-bold text-white leading-none">{contact.name}</h2>
+               <p className="text-[11px] text-green-500 font-medium mt-1 uppercase tracking-wider">En ligne</p>
+             </div>
+           </div>
+        </div>
+      </div>
+
+      {/* Message Area */}
+      <div 
+        ref={scrollRef}
+        className="flex-1 overflow-y-auto p-5 space-y-6 scroll-smooth scrollbar-hide"
+      >
+        {messages.map((msg: any) => (
+          <motion.div 
+            key={msg.id}
+            initial={{ opacity: 0, y: 10, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            className={`flex flex-col ${msg.type === 'transaction' ? 'items-center' : (msg.sender === 'me' ? 'items-end' : 'items-start')}`}
+          >
+            {msg.type === 'transaction' ? (
+              <motion.div 
+                whileHover={{ scale: 1.02 }}
+                transition={{ type: "spring", stiffness: 500, damping: 15 }}
+                className="bg-[#1c2b43] border border-white/10 rounded-[28px] p-5 flex flex-col items-center gap-3 shadow-xl max-w-[280px] w-full"
+              >
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center ${msg.sender === 'me' ? 'bg-orange-500/20 text-orange-500' : 'bg-green-500/20 text-green-500'}`}>
+                  {msg.sender === 'me' ? <ArrowUpCircle size={28} /> : <ArrowDownCircle size={28} />}
+                </div>
+                <div className="text-center">
+                  <div className="flex items-baseline justify-center gap-1">
+                    <span className="text-[28px] font-bold text-white">{msg.amount}</span>
+                    <span className="text-[14px] font-bold text-white/50">MAD</span>
+                  </div>
+                  <p className="text-[12px] font-semibold text-[#94a3b8] mt-0.5">
+                    {msg.sender === 'me' ? 'Envoyé' : 'Reçu'} • {msg.status || 'Réussie'}
+                  </p>
+                </div>
+              </motion.div>
+            ) : (
+              <div className={`max-w-[80%] rounded-[20px] px-4 py-3 text-[15px] font-medium leading-relaxed ${
+                msg.sender === 'me' 
+                ? 'bg-[#3b82f6] text-white rounded-br-none shadow-lg shadow-blue-500/10' 
+                : 'bg-white/10 text-white rounded-bl-none'
+              }`}>
+                {msg.content}
+              </div>
+            )}
+            <span className="text-[10px] text-white/20 mt-1.5 font-medium uppercase tracking-tighter">
+               {msg.date || "Maintenant"}
+            </span>
+          </motion.div>
+        ))}
+      </div>
+
+      {/* Input Bar */}
+      <div className="px-4 pb-10 pt-2 bg-[#050A1A]">
+        <div className="bg-[#1c2b43] rounded-[24px] flex items-center p-1.5 border border-white/5 shadow-lg">
+          <button 
+            onClick={() => setShowKeypad(true)}
+            className="w-11 h-11 flex items-center justify-center rounded-full bg-white/5 text-white hover:bg-white/10 transition"
+          >
+            <HandCoins size={22} className="text-[#3b82f6]" />
+          </button>
+          
+          <input 
+            type="text" 
+            placeholder="Écrivez un message..." 
+            value={msgText}
+            onChange={(e) => setMsgText(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSendText()}
+            className="flex-1 bg-transparent border-none outline-none text-white px-3 text-[15px] placeholder-white/20 font-medium"
+          />
+
+          <motion.button 
+            whileTap={{ scale: 0.9 }}
+            onClick={handleSendText}
+            disabled={!msgText.trim()}
+            className={`w-11 h-11 flex items-center justify-center rounded-full transition-all ${
+              msgText.trim() ? 'bg-[#3b82f6] text-white' : 'bg-white/5 text-white/20'
+            }`}
+          >
+            <Send size={20} />
+          </motion.button>
+        </div>
+      </div>
+
+      {/* Keypad Overlay */}
+      <AnimatePresence>
+        {showKeypad && (
+          <motion.div 
+            initial={{ y: "100%" }}
+            animate={{ y: 0 }}
+            exit={{ y: "100%" }}
+            transition={{ type: "spring", stiffness: 400, damping: 30 }}
+            className="absolute inset-0 bg-[#050A1A] z-50 flex flex-col"
+          >
+            <div className="px-5 pt-6 flex items-center justify-between">
+               <button onClick={() => setShowKeypad(false)} className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5">
+                 <ChevronLeft size={24} />
+               </button>
+               <h3 className="text-white font-bold text-[17px]">Envoyer à {contact.name.split(' ')[0]}</h3>
+               <div className="w-10 h-10"></div>
+            </div>
+
+            <div className="flex-1 flex flex-col items-center justify-center -mt-10">
+               <div className="flex items-baseline gap-2 mb-2">
+                 <span className={`text-[56px] font-bold tracking-tight ${amountStr.length > 0 ? 'text-white' : 'text-white/20'}`}>
+                   {amountStr || '0'}
+                 </span>
+                 <span className="text-[24px] font-bold text-white/40">MAD</span>
+               </div>
+               <p className="text-[#94a3b8] text-[13px] font-medium bg-white/5 px-4 py-1.5 rounded-full border border-white/5">
+                 Solde: {formatMoney(balances.MAD)} MAD
+               </p>
+            </div>
+
+            <div className="px-6 pb-8">
+               <div className="grid grid-cols-3 gap-y-4 mb-8">
+                 {['1', '2', '3', '4', '5', '6', '7', '8', '9', '.', '0', 'del'].map((key) => (
+                   <button 
+                     key={key}
+                     onClick={() => key === 'del' ? deleteDigit() : addDigit(key)}
+                     className="h-16 flex items-center justify-center text-[24px] font-semibold text-white active:bg-white/5 rounded-full transition"
+                   >
+                     {key === 'del' ? <ChevronLeft size={28} /> : key}
+                   </button>
+                 ))}
+               </div>
+
+               <motion.button 
+                 whileTap={{ scale: 0.95 }}
+                 onClick={handleSendMoney}
+                 disabled={!amountStr || parseFloat(amountStr) <= 0}
+                 className={`w-full h-[64px] rounded-[24px] font-bold text-[18px] transition-all ${
+                   amountStr && parseFloat(amountStr) > 0 
+                   ? 'bg-[#3b82f6] text-white shadow-lg shadow-blue-500/20' 
+                   : 'bg-white/5 text-white/20'
+                 }`}
+               >
+                 Envoyer {amountStr ? `${amountStr} MAD` : ''}
+               </motion.button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
+  );
 }
 
 function ContactTransfer({ setCurrentView, contact }: any) {
@@ -1222,7 +1628,7 @@ function ContactTransfer({ setCurrentView, contact }: any) {
     >
        <div className="flex items-center px-4 pt-4 pb-2 relative z-10">
         <button 
-          onClick={() => setCurrentView('virements')} 
+          onClick={() => setCurrentView('chat_view')} 
           className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 transition shrink-0"
         >
           <ChevronLeft size={24} className="text-white" />
