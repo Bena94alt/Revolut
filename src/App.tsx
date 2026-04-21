@@ -42,6 +42,14 @@ const formatMoney = (amount: number) => {
   }).format(amount);
 };
 
+const CONTACTS = [
+  { id: 1, name: "Ghali Berrada", initials: "GB", bg: "bg-blue-500", transaction: "Vous avez envoyé 80 MAD", date: "Hier" },
+  { id: 2, name: "Kamil Lahlou", initials: "KL", bg: "bg-teal-500", transaction: "Vous a envoyé 150 MAD", date: "2 jours" },
+  { id: 3, name: "Ghita Benjelloun", initials: "GB", bg: "bg-orange-500", transaction: "Vous avez envoyé 45 MAD", date: "Lundi" },
+  { id: 4, name: "Abdellah Karim", initials: "AK", bg: "bg-purple-500", transaction: "Vous avez envoyé 200 MAD", date: "5 janv." },
+  { id: 5, name: "Adam Benabdelhak", initials: "AB", bg: "bg-[#3b82f6]", transaction: "Vous a envoyé 10 MAD", date: "24 déc." }
+];
+
 const formatMoneyParts = (amount: number) => {
   const parts = new Intl.NumberFormat('fr-FR', {
     minimumFractionDigits: 2,
@@ -58,6 +66,7 @@ const springTransition = { type: "spring", stiffness: 400, damping: 17 };
 export default function App() {
   const [currentView, setCurrentView] = useState('dashboard');
   const [investments, setInvestments] = useState<Record<string, number>>({});
+  const [selectedContact, setSelectedContact] = useState<any>(null);
   
   // Global Financial State
   const [balances, setBalances] = useState({
@@ -133,7 +142,7 @@ export default function App() {
           </div>
 
           <AnimatePresence>
-            {currentView !== 'dashboard' && currentView !== 'invest' && currentView !== 'news_feed' && currentView !== 'invest_flow' && (
+            {currentView !== 'dashboard' && currentView !== 'invest' && currentView !== 'virements' && currentView !== 'news_feed' && currentView !== 'invest_flow' && (
               <motion.div 
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -193,6 +202,20 @@ export default function App() {
                 onTransfer={transferMoney}
               />
             )}
+            {currentView === 'virements' && (
+              <Virements 
+                key="virements"
+                setCurrentView={setCurrentView}
+                setSelectedContact={setSelectedContact}
+              />
+            )}
+            {currentView === 'contact_transfer' && (
+              <ContactTransfer 
+                key="contact_transfer"
+                setCurrentView={setCurrentView}
+                contact={selectedContact}
+              />
+            )}
             {currentView === 'bank_details' && (
               <BankDetails 
                 key="bank_details"
@@ -205,7 +228,7 @@ export default function App() {
 
         {/* Bottom Navigation Bar */}
         <AnimatePresence>
-        {['dashboard', 'invest'].includes(currentView) && (
+        {['dashboard', 'invest', 'virements'].includes(currentView) && (
           <motion.div 
             initial={{ y: 100 }}
             animate={{ y: 0 }}
@@ -233,7 +256,11 @@ export default function App() {
               <span className="text-[10px] tracking-wide">Investir</span>
             </div>
             
-            <div className="flex flex-col items-center cursor-pointer w-16 text-[#64748b] hover:text-white transition gap-[4px] pt-1.5">
+            <div 
+              onClick={() => setCurrentView('virements')}
+              className={`flex flex-col items-center cursor-pointer w-16 relative gap-[4px] pt-1.5 transition ${currentView === 'virements' ? 'text-white' : 'text-[#64748b] hover:text-white'}`}
+            >
+              {currentView === 'virements' && <div className="absolute -top-[10px] w-10 h-1 bg-[#3b82f6] rounded-b-[4px]"></div>}
               <ArrowLeftRight size={24} className="stroke-[2]" />
               <span className="text-[10px] tracking-wide">Virements</span>
             </div>
@@ -1107,4 +1134,138 @@ function InfoRow({ label, value }: { label: string, value: string }) {
       </button>
     </div>
   );
+}
+
+function Virements({ setCurrentView, setSelectedContact }: any) {
+  return (
+    <motion.div 
+      initial={{ x: "100%" }}
+      animate={{ x: 0 }}
+      exit={{ x: "100%" }}
+      transition={{ type: "spring", stiffness: 400, damping: 25 }}
+      className="absolute inset-0 flex flex-col h-full bg-[#051025] z-0 overflow-hidden"
+    >
+      <div className="px-5 pt-6 pb-2 relative z-10 bg-[#0A1530]">
+         <div className="flex items-center mb-4">
+           <button onClick={() => setCurrentView('dashboard')} className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 transition shrink-0">
+             <ChevronLeft size={24} className="text-white" />
+           </button>
+           <h2 className="text-[20px] font-bold text-white ml-2 flex-1 relative top-[1px]">Virements</h2>
+         </div>
+         {/* Search bar */}
+         <div className="bg-[#1c2b43] rounded-[16px] flex items-center px-4 py-3 border border-white/5">
+            <Search size={18} className="text-[#94a3b8] mr-3" />
+            <input type="text" placeholder="Rechercher" className="bg-transparent border-none outline-none text-white text-[15px] w-full placeholder-[#94a3b8] font-medium" />
+         </div>
+      </div>
+      
+      <div className="flex-1 overflow-y-auto scrollbar-hide pb-[100px] bg-[#0A1530]">
+        <div className="px-5 py-4">
+           <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                 <div className="w-[46px] h-[46px] rounded-full bg-[#3b82f6]/20 border border-[#3b82f6]/30 flex items-center justify-center text-[#3b82f6] shrink-0">
+                    <Plus size={22} className="stroke-[2.5]" />
+                 </div>
+                 <div className="flex flex-col gap-0.5">
+                    <h3 className="text-white font-semibold text-[15px]">Ajouter vos contacts</h3>
+                    <p className="text-[#94a3b8] text-[13px]">Pour des paiements rapides</p>
+                 </div>
+              </div>
+              <button className="bg-white/10 hover:bg-white/20 text-white text-[13px] font-semibold px-4 py-1.5 rounded-full transition">Continuer</button>
+           </div>
+        </div>
+
+        <div className="px-5">
+           <div className="h-[1px] w-full bg-white/5 mb-2 mt-1"></div>
+           {CONTACTS.map((contact, i) => (
+             <motion.div 
+               whileTap={{ scale: 0.98 }}
+               key={contact.id} 
+               onClick={() => { setSelectedContact(contact); setCurrentView('contact_transfer'); }}
+               className="flex items-center justify-between py-3.5 cursor-pointer"
+             >
+               <div className="flex items-center gap-4">
+                 <div className="relative">
+                   <div className={`w-[46px] h-[46px] rounded-full flex items-center justify-center text-white text-[17px] font-semibold ${contact.bg}`}>
+                     {contact.initials}
+                   </div>
+                   <div className="absolute -bottom-0.5 -right-0.5 w-[22px] h-[22px] bg-[#0A1530] rounded-full flex items-center justify-center">
+                     <div className="w-[16px] h-[16px] bg-white rounded-full flex items-center justify-center text-[#0A1530] text-[10px] font-extrabold pb-[0.5px]">M</div>
+                   </div>
+                 </div>
+                 <div className="flex flex-col gap-0.5">
+                   <h3 className="text-white font-semibold text-[15px]">{contact.name}</h3>
+                   <p className="text-[#94a3b8] text-[13px]">{contact.transaction}</p>
+                 </div>
+               </div>
+               <span className="text-[#94a3b8] text-[12px] font-medium">{contact.date}</span>
+             </motion.div>
+           ))}
+        </div>
+      </div>
+    </motion.div>
+  )
+}
+
+function ContactTransfer({ setCurrentView, contact }: any) {
+  const [amountStr, setAmountStr] = useState('');
+  
+  if (!contact) return null;
+
+  return (
+    <motion.div 
+      initial={{ x: "100%" }}
+      animate={{ x: 0 }}
+      exit={{ x: "100%" }}
+      transition={{ type: "spring", stiffness: 400, damping: 25 }}
+      className="absolute inset-0 flex flex-col h-full bg-[#051025] z-50 text-white"
+    >
+       <div className="flex items-center px-4 pt-4 pb-2 relative z-10">
+        <button 
+          onClick={() => setCurrentView('virements')} 
+          className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 transition shrink-0"
+        >
+          <ChevronLeft size={24} className="text-white" />
+        </button>
+        <div className="flex-1 text-center pr-10 flex flex-col items-center">
+          <h2 className="text-[17px] font-bold leading-tight truncate px-2">{contact.name}</h2>
+          <p className="text-[13px] text-[#94a3b8] font-medium mt-0.5">Envoyer de l'argent</p>
+        </div>
+      </div>
+
+      <div className="flex-1 flex flex-col items-center justify-center -mt-20">
+        <div className={`w-[84px] h-[84px] rounded-full flex items-center justify-center text-white text-[32px] font-semibold mb-6 shadow-lg ${contact.bg}`}>
+           {contact.initials}
+        </div>
+        
+        <div className="flex flex-col items-center justify-center relative">
+           <div className="flex items-baseline justify-center font-bold text-[56px] tracking-tight gap-1.5 h-[64px]">
+             <input
+               type="text"
+               inputMode="decimal"
+               placeholder="0"
+               value={amountStr}
+               onChange={(e) => setAmountStr(e.target.value)}
+               className="bg-transparent border-none outline-none text-right placeholder-white/20 w-auto min-w-[1ch] flex-shrink-0" 
+               style={{ width: amountStr.length ? `${amountStr.length}ch` : '1.2ch' }}
+               autoFocus
+             />
+             <span className="text-[28px] relative -bottom-1">MAD</span>
+           </div>
+        </div>
+        <div className="mt-8 bg-[#1c2b43] rounded-full px-5 py-2.5 text-[14px] text-white/80 font-medium border border-white/5">
+           Ajouter une note
+        </div>
+      </div>
+
+      <div className="px-5 pb-8 relative z-10">
+         <motion.button 
+           whileTap={{ scale: 0.96 }}
+           className={`w-full py-[18px] rounded-full font-semibold text-[16px] transition-all flex items-center justify-center gap-2 ${amountStr.length > 0 && parseFloat(amountStr) > 0 ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20' : 'bg-white/5 text-[#94a3b8]'}`}
+         >
+           Continuer
+         </motion.button>
+      </div>
+    </motion.div>
+  )
 }
