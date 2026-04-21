@@ -95,14 +95,16 @@ export default function App() {
   // Global Financial State
   const [balances, setBalances] = useState({
     MAD: 0.01,
-    EUR: 0.00
+    EUR: 0.00,
+    USD: 0.00,
+    GBP: 0.00
   });
   
   // Tracks the currently visible account on the Dashboard slider
-  const [activeAccount, setActiveAccount] = useState<'MAD' | 'EUR'>('MAD');
+  const [activeAccount, setActiveAccount] = useState<'MAD' | 'EUR' | 'USD' | 'GBP'>('MAD');
 
   // Logic functions
-  const addMoney = (amount: number, currency: 'MAD' | 'EUR') => {
+  const addMoney = (amount: number, currency: 'MAD' | 'EUR' | 'USD' | 'GBP') => {
     setBalances(prev => ({
       ...prev,
       [currency]: prev[currency] + amount
@@ -406,7 +408,20 @@ function Dashboard({ setCurrentView, balances, activeAccount, setActiveAccount, 
     const scrollLeft = e.currentTarget.scrollLeft;
     const width = e.currentTarget.clientWidth;
     const slideIndex = Math.round(scrollLeft / width);
-    setActiveAccount(slideIndex === 0 ? 'MAD' : 'EUR');
+    const accounts: ('MAD' | 'EUR' | 'USD' | 'GBP')[] = ['MAD', 'EUR', 'USD', 'GBP'];
+    if (accounts[slideIndex]) {
+      setActiveAccount(accounts[slideIndex]);
+    }
+  };
+
+  const scrollToAccount = (index: number) => {
+    if (scrollContainerRef.current) {
+      const width = scrollContainerRef.current.clientWidth;
+      scrollContainerRef.current.scrollTo({
+        left: width * index,
+        behavior: 'smooth'
+      });
+    }
   };
 
   const handlePortfolioScroll = (e: React.UIEvent<HTMLDivElement>) => {
@@ -417,11 +432,13 @@ function Dashboard({ setCurrentView, balances, activeAccount, setActiveAccount, 
   };
 
   const renderDots = () => {
-    const activeIndex = activeAccount === 'MAD' ? 0 : 1;
+    const accounts: ('MAD' | 'EUR' | 'USD' | 'GBP')[] = ['MAD', 'EUR', 'USD', 'GBP'];
+    const activeIndex = accounts.indexOf(activeAccount);
     return [0, 1, 2, 3].map((dot) => (
       <div 
         key={dot} 
-        className={`w-[6px] h-[6px] rounded-full transition-colors duration-300 ${dot === activeIndex ? 'bg-white shadow-[0_0_8px_rgba(255,255,255,0.5)]' : 'bg-white/20'}`}
+        onClick={() => scrollToAccount(dot)}
+        className={`w-[6px] h-[6px] rounded-full transition-all duration-300 cursor-pointer ${dot === activeIndex ? 'bg-white scale-125 shadow-[0_0_8px_rgba(255,255,255,0.5)]' : 'bg-white/20'}`}
       ></div>
     ));
   };
@@ -461,47 +478,37 @@ function Dashboard({ setCurrentView, balances, activeAccount, setActiveAccount, 
           className="w-full flex overflow-x-auto snap-x snap-mandatory scrollbar-hide py-2"
           onScroll={handleScroll}
         >
-          {/* Slide 1: MAD */}
-          <div className="w-full shrink-0 snap-center flex flex-col items-center px-4">
-            <p className="text-[13px] text-white/70 font-medium tracking-wide mb-1">
-              Adam Benabdelhak - MAD
-            </p>
-            <div className="flex items-baseline justify-center mb-6">
-              <span className="text-[40px] font-bold tracking-tight leading-none text-white whitespace-nowrap">
-                {formatMoneyParts(balances.MAD).integerPart}
-              </span>
-              <span className="text-[20px] font-medium tracking-wide text-white/50 ml-0.5">{formatMoneyParts(balances.MAD).decimalPart} <span className="ml-1">MAD</span></span>
+          {/* Slides: MAD, EUR, USD, GBP */}
+          {(['MAD', 'EUR', 'USD', 'GBP'] as const).map((curr) => (
+            <div key={curr} className="w-full shrink-0 snap-center flex flex-col items-center px-4">
+              <p className="text-[13px] text-white/70 font-medium tracking-wide mb-1">
+                Adam Benabdelhak - {curr}
+              </p>
+              <motion.div 
+                key={curr}
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={springTransition}
+                className="flex items-baseline justify-center mb-6"
+              >
+                <span className="text-[40px] font-bold tracking-tight leading-none text-white whitespace-nowrap">
+                  {formatMoneyParts(balances[curr]).integerPart}
+                </span>
+                <span className="text-[20px] font-medium tracking-wide text-white/70 ml-0.5">
+                  <span className="opacity-70 text-[0.8em]">{formatMoneyParts(balances[curr]).decimalPart}</span>
+                  <span className="ml-1 opacity-70 text-[0.8em]">{curr}</span>
+                </span>
+              </motion.div>
+              <motion.button 
+                whileTap={{ scale: 0.95 }}
+                transition={springTransition}
+                onClick={() => setCurrentView('patrimoine_comptes')}
+                className="px-5 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm transition text-white rounded-[20px] text-[13px] font-medium border border-white/5"
+              >
+                Comptes et Portefeuilles
+              </motion.button>
             </div>
-            <motion.button 
-              whileTap={{ scale: 0.95 }}
-              transition={springTransition}
-              onClick={() => setCurrentView('patrimoine_comptes')}
-              className="px-5 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm transition text-white rounded-[20px] text-[13px] font-medium border border-white/5"
-            >
-              Comptes et Portefeuilles
-            </motion.button>
-          </div>
-
-          {/* Slide 2: EUR */}
-          <div className="w-full shrink-0 snap-center flex flex-col items-center px-4 pt-1">
-            <p className="text-[13px] text-white/70 font-medium tracking-wide mb-1">
-              Adam Benabdelhak - EUR
-            </p>
-            <div className="flex items-baseline justify-center mb-6">
-              <span className="text-[40px] font-bold tracking-tight leading-none text-white whitespace-nowrap">
-                {formatMoneyParts(balances.EUR).integerPart}
-              </span>
-              <span className="text-[20px] font-medium tracking-wide text-white/50 ml-0.5">{formatMoneyParts(balances.EUR).decimalPart} <span className="ml-1">EUR</span></span>
-            </div>
-            <motion.button 
-              whileTap={{ scale: 0.95 }}
-              transition={springTransition}
-              onClick={() => setCurrentView('patrimoine_comptes')}
-              className="px-5 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm transition text-white rounded-[20px] text-[13px] font-medium border border-white/5"
-            >
-              Comptes et Portefeuilles
-            </motion.button>
-          </div>
+          ))}
         </div>
       </div>
 
@@ -608,34 +615,44 @@ function Dashboard({ setCurrentView, balances, activeAccount, setActiveAccount, 
          <div 
            ref={portfolioScrollRef}
            onScroll={handlePortfolioScroll}
-           className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide"
+           className="flex overflow-x-auto snap-x snap-mandatory scrollbar-hide px-4 -mx-4"
          >
             {/* SLIDE 1: Forex Market */}
-            <div className="min-w-full snap-start pr-4">
-              <div className="bg-[#1c2b43] rounded-[24px] px-2 py-2 border border-white/5 shadow-lg flex flex-col">
-                <MarketRow 
+            <div className="min-w-full snap-start pr-4 pb-4 px-4 overflow-hidden">
+              <div className="flex gap-4 overflow-x-auto scrollbar-hide">
+                <WatchlistCard 
                   icon="🇬🇧" 
-                  name="Livre sterling" 
-                  pair="GBP à MAD" 
-                  value={`${formatMoneyParts(rates.GBP.val).integerPart},${formatMoneyParts(rates.GBP.val).decimalPart} MAD`} 
+                  name="GBP" 
+                  value={`${formatMoneyParts(rates.GBP.val).integerPart}${formatMoneyParts(rates.GBP.val).decimalPart}`} 
                   pct={rates.GBP.pct} 
                 />
-                <MarketRow 
+                <WatchlistCard 
                   icon="🇺🇸" 
-                  name="Dollar américain" 
-                  pair="USD à MAD" 
-                  value={`${formatMoneyParts(rates.USD.val).integerPart},${formatMoneyParts(rates.USD.val).decimalPart} MAD`} 
+                  name="USD" 
+                  value={`${formatMoneyParts(rates.USD.val).integerPart}${formatMoneyParts(rates.USD.val).decimalPart}`} 
                   pct={rates.USD.pct} 
-                  isLast
                 />
+                <WatchlistCard 
+                  icon="🇪🇺" 
+                  name="EUR" 
+                  value={`${formatMoneyParts(10.77).integerPart}${formatMoneyParts(10.77).decimalPart}`} 
+                  pct={0.12} 
+                />
+                <WatchlistCard 
+                  icon="🇨🇭" 
+                  name="CHF" 
+                  value={`${formatMoneyParts(11.45).integerPart}${formatMoneyParts(11.45).decimalPart}`} 
+                  pct={-0.05} 
+                />
+                <div className="w-4 shrink-0"></div>
               </div>
             </div>
 
             {/* SLIDE 2: Personal Portfolio (Conditional) */}
             {Object.keys(investments || {}).length > 0 && (
-              <div className="min-w-full snap-start">
+              <div className="min-w-full snap-start px-4">
                 <div className="bg-[#1c2b43] rounded-[24px] px-2 py-2 border border-white/5 shadow-lg flex flex-col">
-                  {Object.entries(investments).map(([id, amount], index, arr) => {
+                  {(Object.entries(investments) as [string, number][]).map(([id, amount], index, arr) => {
                     const asset = ALL_ASSETS.find(a => a.id === id);
                     if (!asset) return null;
                     return (
@@ -645,7 +662,7 @@ function Dashboard({ setCurrentView, balances, activeAccount, setActiveAccount, 
                         iconBg={asset.bg}
                         name={asset.name} 
                         pair={`${amount} parts`} 
-                        value={`${formatMoneyParts(amount * (asset.id === 'btc' ? 95000 : 150)).integerPart},${formatMoneyParts(amount * (asset.id === 'btc' ? 95000 : 150)).decimalPart} MAD`} 
+                        value={`${formatMoneyParts(amount * (asset.id === 'btc' ? 95000 : 150)).integerPart}${formatMoneyParts(amount * (asset.id === 'btc' ? 95000 : 150)).decimalPart} MAD`} 
                         pct={asset.apy / 365} 
                         isLast={index === arr.length - 1}
                       />
@@ -665,6 +682,25 @@ function Dashboard({ setCurrentView, balances, activeAccount, setActiveAccount, 
          )}
       </div>
     </div>
+  );
+}
+
+function WatchlistCard({ icon, name, value, pct }: any) {
+  const isPositive = pct >= 0;
+  return (
+    <motion.div 
+      whileTap={{ scale: 0.95 }}
+      className="bg-[#1c2b43] rounded-[24px] p-4 border border-white/5 shadow-lg flex flex-col min-w-[140px] shrink-0"
+    >
+       <div className="flex justify-between items-start mb-3">
+          <span className="text-[20px]">{icon}</span>
+          <span className={`text-[11px] font-bold ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
+            {isPositive ? '+' : ''}{pct.toFixed(2)}%
+          </span>
+       </div>
+       <p className="text-[12px] font-bold text-[#94a3b8] mb-1">{name}/MAD</p>
+       <p className="text-[16px] font-bold text-white">{value}</p>
+    </motion.div>
   );
 }
 

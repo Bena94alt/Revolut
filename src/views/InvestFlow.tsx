@@ -66,26 +66,26 @@ export function InvestFlow({ setCurrentView, setInvestments }: any) {
 
   // Step 3 metrics calculations
   const chosenAssets = ALL_ASSETS.filter(a => selectedAssets.includes(a.id));
-  const totalInvested = Object.values(amounts).reduce((sum, val) => sum + (val || 0), 0);
+  const totalInvested = (Object.values(amounts) as number[]).reduce((sum, val) => sum + (val || 0), 0);
   
   const estimatedReturnAnnual = chosenAssets.reduce((sum, asset) => {
-    const amt = amounts[asset.id] || 0;
+    const amt = (amounts[asset.id] as number) || 0;
     return sum + (amt * (asset.apy / 100));
   }, 0);
   
-  const estimatedMonthlyReturn = totalInvested > 0 ? (estimatedReturnAnnual / 12) : 0;
+  const estimatedMonthlyReturn = (totalInvested as number) > 0 ? (estimatedReturnAnnual / 12) : 0;
   
   // Risk weighting logic: Low=1, Medium=2, High=3
   let globalRiskScore = 0;
-  if (totalInvested > 0) {
+  if ((totalInvested as number) > 0) {
     const riskSum = chosenAssets.reduce((acc, asset) => {
-      const amt = amounts[asset.id] || 0;
+      const amt = (amounts[asset.id] as number) || 0;
       let rVal = 1;
       if (asset.risk === 'medium') rVal = 2;
       if (asset.risk === 'high') rVal = 3;
       return acc + (amt * rVal);
     }, 0);
-    globalRiskScore = riskSum / totalInvested;
+    globalRiskScore = riskSum / (totalInvested as number);
   } else {
     // simple avg if no money entered yet
     const rawSum = chosenAssets.reduce((acc, a) => acc + (a.risk === 'high' ? 3 : a.risk === 'medium' ? 2 : 1), 0);
