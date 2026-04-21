@@ -22,8 +22,12 @@ import {
   ChevronRight,
   Coins,
   Link as LinkIcon,
-  HandCoins
+  HandCoins,
+  CheckCircle2
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+
+import { Invest } from './views/Invest';
 
 // Exchange rate
 const EXCHANGE_RATE = 10.77;
@@ -35,6 +39,19 @@ const formatMoney = (amount: number) => {
     maximumFractionDigits: 2
   }).format(amount);
 };
+
+const formatMoneyParts = (amount: number) => {
+  const parts = new Intl.NumberFormat('fr-FR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).formatToParts(amount);
+  
+  const integerPart = parts.filter(p => p.type === 'integer' || p.type === 'group').map(p => p.value).join('');
+  const decimalPart = parts.filter(p => ['decimal', 'fraction'].includes(p.type)).map(p => p.value).join('');
+  return { integerPart, decimalPart };
+};
+
+const springTransition = { type: "spring", stiffness: 400, damping: 17 };
 
 export default function App() {
   const [currentView, setCurrentView] = useState('dashboard');
@@ -89,56 +106,101 @@ export default function App() {
         </div>
 
         {/* Dynamic Screen Content */}
-        <div className="flex-1 overflow-y-auto scrollbar-hide flex flex-col relative w-full h-full pb-[80px]">
-          {currentView === 'dashboard' && (
-            <Dashboard 
-              setCurrentView={setCurrentView} 
-              balances={balances}
-              activeAccount={activeAccount}
-              setActiveAccount={setActiveAccount}
-            />
-          )}
-          {currentView === 'patrimoine_comptes' && (
-            <PatrimoineComptes 
-              setCurrentView={setCurrentView} 
-              balances={balances}
-            />
-          )}
-          {currentView === 'add_money' && (
-            <AddMoney 
-              setCurrentView={setCurrentView} 
-              activeAccount={activeAccount}
-              currentBalance={balances[activeAccount]}
-              onAddMoney={addMoney}
-            />
-          )}
-          {currentView === 'transfer' && (
-            <Transfer 
-              setCurrentView={setCurrentView} 
-              balances={balances}
-              onTransfer={transferMoney}
-            />
-          )}
-          {currentView === 'bank_details' && (
-            <BankDetails 
-              setCurrentView={setCurrentView} 
-              activeAccount={activeAccount}
-            />
-          )}
+        <div className="flex-1 overflow-hidden relative w-full h-full">
+          {/* Base Layer: Dashboard */}
+          <div className="absolute inset-0 overflow-y-auto scrollbar-hide pb-[80px]">
+            <AnimatePresence mode="popLayout">
+              {currentView === 'dashboard' && (
+                <motion.div key="dashboard" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full">
+                  <Dashboard 
+                    setCurrentView={setCurrentView} 
+                    balances={balances}
+                    activeAccount={activeAccount}
+                    setActiveAccount={setActiveAccount}
+                  />
+                </motion.div>
+              )}
+              {currentView === 'invest' && (
+                <motion.div key="invest" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full absolute inset-0 bg-[#0A1530]">
+                  <Invest />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          <AnimatePresence>
+            {currentView !== 'dashboard' && currentView !== 'invest' && (
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="absolute inset-0 z-30 bg-[#050A1A]/80 backdrop-blur-sm"
+                onClick={() => setCurrentView('dashboard')}
+              />
+            )}
+          </AnimatePresence>
+
+          <AnimatePresence>
+            {currentView === 'patrimoine_comptes' && (
+              <PatrimoineComptes 
+                key="patrimoine"
+                setCurrentView={setCurrentView} 
+                balances={balances}
+              />
+            )}
+            {currentView === 'add_money' && (
+              <AddMoney 
+                key="add_money"
+                setCurrentView={setCurrentView} 
+                activeAccount={activeAccount}
+                currentBalance={balances[activeAccount]}
+                onAddMoney={addMoney}
+              />
+            )}
+            {currentView === 'transfer' && (
+              <Transfer 
+                key="transfer"
+                setCurrentView={setCurrentView} 
+                balances={balances}
+                onTransfer={transferMoney}
+              />
+            )}
+            {currentView === 'bank_details' && (
+              <BankDetails 
+                key="bank_details"
+                setCurrentView={setCurrentView} 
+                activeAccount={activeAccount}
+              />
+            )}
+          </AnimatePresence>
         </div>
 
-        {/* Bottom Navigation Bar - Only on Dashboard */}
-        {currentView === 'dashboard' && (
-          <div className="absolute bottom-0 left-0 right-0 bg-[#0A1530]/90 backdrop-blur-md border-t border-white/5 pt-2.5 pb-6 px-2 flex justify-around items-end z-20">
-            <div className="flex flex-col items-center cursor-pointer w-16 text-white relative gap-[4px] pt-1.5">
-              <div className="absolute -top-[10px] w-10 h-1 bg-[#3b82f6] rounded-b-[4px]"></div>
+        {/* Bottom Navigation Bar */}
+        <AnimatePresence>
+        {['dashboard', 'invest'].includes(currentView) && (
+          <motion.div 
+            initial={{ y: 100 }}
+            animate={{ y: 0 }}
+            exit={{ y: 100 }}
+            transition={{ type: "spring", stiffness: 400, damping: 25 }}
+            className="absolute bottom-0 left-0 right-0 bg-[#0A1530]/90 backdrop-blur-md border-t border-white/5 pt-2.5 pb-6 px-2 flex justify-around items-end z-20"
+          >
+            <div 
+              onClick={() => setCurrentView('dashboard')}
+              className={`flex flex-col items-center cursor-pointer w-16 relative gap-[4px] pt-1.5 transition ${currentView === 'dashboard' ? 'text-white' : 'text-[#64748b] hover:text-white'}`}
+            >
+              {currentView === 'dashboard' && <div className="absolute -top-[10px] w-10 h-1 bg-[#3b82f6] rounded-b-[4px]"></div>}
               <div className="h-[24px] flex items-center justify-center">
                 <span className="font-bold text-[22px] leading-none tracking-tight">R</span>
               </div>
               <span className="text-[10px] tracking-wide">Accueil</span>
             </div>
             
-            <div className="flex flex-col items-center cursor-pointer w-16 text-[#64748b] hover:text-white transition gap-[4px] pt-1.5">
+            <div 
+              onClick={() => setCurrentView('invest')}
+              className={`flex flex-col items-center cursor-pointer w-16 relative gap-[4px] pt-1.5 transition ${currentView === 'invest' ? 'text-white' : 'text-[#64748b] hover:text-white'}`}
+            >
+              {currentView === 'invest' && <div className="absolute -top-[10px] w-10 h-1 bg-[#3b82f6] rounded-b-[4px]"></div>}
               <BarChart3 size={24} className="stroke-[2]" />
               <span className="text-[10px] tracking-wide">Investir</span>
             </div>
@@ -160,8 +222,9 @@ export default function App() {
 
             {/* iOS Home Indicator */}
             <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-[120px] h-[5px] bg-white/80 rounded-full"></div>
-          </div>
+          </motion.div>
         )}
+        </AnimatePresence>
       </div>
     </div>
   );
@@ -213,7 +276,7 @@ function Dashboard({ setCurrentView, balances, activeAccount, setActiveAccount }
   };
 
   return (
-    <div className="flex flex-col pt-2 animate-in fade-in duration-300">
+    <div className="flex flex-col pt-2 w-full">
       <div className="grid grid-cols-[40px_1fr_32px] items-center px-4 gap-3">
         <button className="w-10 h-10 rounded-full bg-gradient-to-br from-[#2563eb] to-[#3b82f6] flex items-center justify-center shadow-md">
           <Camera size={20} className="text-white relative top-[1px]" />
@@ -254,16 +317,18 @@ function Dashboard({ setCurrentView, balances, activeAccount, setActiveAccount }
             </p>
             <div className="flex items-baseline justify-center mb-6">
               <span className="text-[40px] font-bold tracking-tight leading-none text-white whitespace-nowrap">
-                {formatMoney(balances.MAD)}
+                {formatMoneyParts(balances.MAD).integerPart}
               </span>
-              <span className="text-[20px] font-medium tracking-wide text-white/50 ml-1.5">MAD</span>
+              <span className="text-[20px] font-medium tracking-wide text-white/50 ml-0.5">{formatMoneyParts(balances.MAD).decimalPart} <span className="ml-1">MAD</span></span>
             </div>
-            <button 
+            <motion.button 
+              whileTap={{ scale: 0.95 }}
+              transition={springTransition}
               onClick={() => setCurrentView('patrimoine_comptes')}
-              className="px-5 py-2 bg-white/10 hover:bg-white/15 backdrop-blur-sm transition text-white rounded-[20px] text-[13px] font-medium border border-white/5"
+              className="px-5 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm transition text-white rounded-[20px] text-[13px] font-medium border border-white/5"
             >
               Comptes et Portefeuilles
-            </button>
+            </motion.button>
           </div>
 
           {/* Slide 2: EUR */}
@@ -273,103 +338,129 @@ function Dashboard({ setCurrentView, balances, activeAccount, setActiveAccount }
             </p>
             <div className="flex items-baseline justify-center mb-6">
               <span className="text-[40px] font-bold tracking-tight leading-none text-white whitespace-nowrap">
-                {formatMoney(balances.EUR)}
+                {formatMoneyParts(balances.EUR).integerPart}
               </span>
-              <span className="text-[20px] font-medium tracking-wide text-white/50 ml-1.5">EUR</span>
+              <span className="text-[20px] font-medium tracking-wide text-white/50 ml-0.5">{formatMoneyParts(balances.EUR).decimalPart} <span className="ml-1">EUR</span></span>
             </div>
-            <button 
+            <motion.button 
+              whileTap={{ scale: 0.95 }}
+              transition={springTransition}
               onClick={() => setCurrentView('patrimoine_comptes')}
-              className="px-5 py-2 bg-white/10 hover:bg-white/15 backdrop-blur-sm transition text-white rounded-[20px] text-[13px] font-medium border border-white/5"
+              className="px-5 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm transition text-white rounded-[20px] text-[13px] font-medium border border-white/5"
             >
               Comptes et Portefeuilles
-            </button>
+            </motion.button>
           </div>
         </div>
       </div>
 
       <div className="flex justify-around px-4 mt-8 mb-4">
-        <div className="flex flex-col items-center gap-2 group w-[80px] cursor-pointer" onClick={() => setCurrentView('add_money')}>
-          <button className="w-[56px] h-[56px] rounded-full bg-[#1c2b43] border border-white/5 flex items-center justify-center transition hover:bg-[#2a3c5a] shadow-[0_4px_12px_rgba(0,0,0,0.2)] text-[#3b82f6]">
+        <motion.div 
+          whileTap={{ scale: 0.95 }}
+          transition={springTransition}
+          className="flex flex-col items-center gap-2 group w-[80px] cursor-pointer" 
+          onClick={() => setCurrentView('add_money')}
+        >
+          <button className="w-[56px] h-[56px] rounded-full bg-[#1c2b43] border border-white/5 flex items-center justify-center transition group-hover:bg-[#2a3c5a] shadow-[0_4px_12px_rgba(0,0,0,0.2)] text-[#3b82f6]">
             <Plus size={24} />
           </button>
           <span className="text-[11px] font-medium text-white/80 text-center leading-tight">
             Ajouter de l'argent
           </span>
-        </div>
+        </motion.div>
         
-        <div className="flex flex-col items-center gap-2 group w-[80px] cursor-pointer" onClick={() => setCurrentView('transfer')}>
-          <button className="w-[56px] h-[56px] rounded-full bg-[#1c2b43] border border-white/5 flex items-center justify-center transition hover:bg-[#2a3c5a] shadow-[0_4px_12px_rgba(0,0,0,0.2)] text-[#3b82f6]">
+        <motion.div 
+          whileTap={{ scale: 0.95 }}
+          transition={springTransition}
+          className="flex flex-col items-center gap-2 group w-[80px] cursor-pointer" 
+          onClick={() => setCurrentView('transfer')}
+        >
+          <button className="w-[56px] h-[56px] rounded-full bg-[#1c2b43] border border-white/5 flex items-center justify-center transition group-hover:bg-[#2a3c5a] shadow-[0_4px_12px_rgba(0,0,0,0.2)] text-[#3b82f6]">
             <ArrowLeftRight size={22} />
           </button>
           <span className="text-[11px] font-medium text-white/80 text-center leading-tight">
             Entre mes comptes
           </span>
-        </div>
+        </motion.div>
 
-        <div className="flex flex-col items-center gap-2 group w-[80px] cursor-pointer" onClick={() => setCurrentView('bank_details')}>
-          <button className="w-[56px] h-[56px] rounded-full bg-[#1c2b43] border border-white/5 flex items-center justify-center transition hover:bg-[#2a3c5a] shadow-[0_4px_12px_rgba(0,0,0,0.2)] text-[#3b82f6]">
+        <motion.div 
+          whileTap={{ scale: 0.95 }}
+          transition={springTransition}
+          className="flex flex-col items-center gap-2 group w-[80px] cursor-pointer" 
+          onClick={() => setCurrentView('bank_details')}
+        >
+          <button className="w-[56px] h-[56px] rounded-full bg-[#1c2b43] border border-white/5 flex items-center justify-center transition group-hover:bg-[#2a3c5a] shadow-[0_4px_12px_rgba(0,0,0,0.2)] text-[#3b82f6]">
             <Landmark size={22} />
           </button>
           <span className="text-[11px] font-medium text-white/80 text-center leading-tight">
             Informations
           </span>
-        </div>
+        </motion.div>
 
-        <div className="flex flex-col items-center gap-2 group w-[80px] cursor-pointer">
-          <button className="w-[56px] h-[56px] rounded-full bg-[#1c2b43] border border-white/5 flex items-center justify-center transition hover:bg-[#2a3c5a] shadow-[0_4px_12px_rgba(0,0,0,0.2)] text-[#3b82f6]">
+        <motion.div 
+          whileTap={{ scale: 0.95 }}
+          transition={springTransition}
+          className="flex flex-col items-center gap-2 group w-[80px] cursor-pointer"
+        >
+          <button className="w-[56px] h-[56px] rounded-full bg-[#1c2b43] border border-white/5 flex items-center justify-center transition group-hover:bg-[#2a3c5a] shadow-[0_4px_12px_rgba(0,0,0,0.2)] text-[#3b82f6]">
             <MoreHorizontal size={24} />
           </button>
           <span className="text-[11px] font-medium text-white/80 text-center leading-tight">
             Plus
           </span>
-        </div>
+        </motion.div>
       </div>
 
-      {/* Dépenses du mois Section */}
-      <div className="px-4 mt-6">
-         <div className="bg-[#1c2b43] rounded-[24px] p-5 border border-white/5 shadow-lg">
-            <h3 className="text-[13px] font-medium text-[#94a3b8] mb-1">Dépenses du mois</h3>
-            <div className="flex items-baseline mb-6">
-              <span className="text-[32px] font-bold text-white leading-none">0</span>
-              <span className="text-[16px] font-medium text-white/50 ml-1.5">MAD</span>
-            </div>
-            
-            {/* Progress Bar with markers */}
-            <div className="relative pt-2">
-              <div className="w-full h-[3px] bg-white/10 rounded-full">
-                 <div className="w-[10%] h-full bg-[#3b82f6] rounded-full"></div>
+        {/* Dépenses du mois Section */}
+        <div className="px-4 mt-6">
+           <div className="bg-[#1c2b43] rounded-[24px] p-5 border border-white/5 shadow-lg">
+              <h3 className="text-[13px] font-medium text-[#94a3b8] mb-1">Dépenses du mois</h3>
+              <div className="flex items-baseline mb-6">
+                <span className="text-5xl font-bold text-white tracking-tight leading-none">27 832</span>
+                <span className="text-2xl font-medium text-white/50 ml-0.5">,00 MAD</span>
               </div>
-              <div className="flex justify-between w-full mt-2 text-[10px] text-white/30 font-medium">
-                <span>1</span>
-                <span>6</span>
-                <span>11</span>
-                <span>16</span>
-                <span>21</span>
-                <span>26</span>
-                <span>30</span>
+              
+              {/* Progress Bar with markers */}
+              <div className="relative pt-2">
+                <div className="w-full flex h-[4px] gap-[2px]">
+                   {Array.from({ length: 30 }).map((_, i) => (
+                      <div 
+                        key={i} 
+                        className={`flex-1 rounded-full ${i < 21 ? 'bg-white' : 'bg-white/20'}`}
+                      ></div>
+                   ))}
+                </div>
+                <div className="flex justify-between w-full mt-2 text-[10px] text-white/50 font-medium">
+                  <span>1</span>
+                  <span>6</span>
+                  <span>11</span>
+                  <span>16</span>
+                  <span>21</span>
+                  <span>26</span>
+                  <span>30</span>
+                </div>
               </div>
-            </div>
-         </div>
-      </div>
+           </div>
+        </div>
 
       {/* Liste de surveillance Section */}
       <div className="px-4 mt-6 pb-6">
          <div className="flex items-center text-[#94a3b8] font-semibold text-[13px] mb-3 px-1 cursor-pointer w-max">
             Liste de surveillance <ChevronRight size={14} className="ml-0.5 relative top-[1px]" />
          </div>
-         <div className="bg-[#1c2b43] rounded-[24px] px-2 py-2 border border-white/5 shadow-lg flex flex-col">
+          <div className="bg-[#1c2b43] rounded-[24px] px-2 py-2 border border-white/5 shadow-lg flex flex-col">
             <MarketRow 
               icon="🇬🇧" 
               name="Livre sterling" 
               pair="GBP à MAD" 
-              value={`${rates.GBP.val.toFixed(2)} MAD`} 
+              value={`${formatMoneyParts(rates.GBP.val).integerPart}${formatMoneyParts(rates.GBP.val).decimalPart} MAD`} 
               pct={rates.GBP.pct} 
             />
             <MarketRow 
               icon="🇺🇸" 
               name="Dollar américain" 
               pair="USD à MAD" 
-              value={`${rates.USD.val.toFixed(2)} MAD`} 
+              value={`${formatMoneyParts(rates.USD.val).integerPart}${formatMoneyParts(rates.USD.val).decimalPart} MAD`} 
               pct={rates.USD.pct} 
               isLast
             />
@@ -393,10 +484,23 @@ function MarketRow({ icon, name, pair, value, pct, isLast }: any) {
           </div>
        </div>
        <div className="flex flex-col items-end">
-          <span className="text-[14px] font-bold text-white">{value}</span>
-          <span className={`text-[12px] font-semibold ${isPositive ? 'text-green-400' : 'text-red-400'}`}>
+          <motion.span 
+            key={value}
+            initial={{ color: isPositive ? "#4ade80" : "#f87171" }}
+            animate={{ color: "#ffffff" }}
+            transition={{ duration: 0.8 }}
+            className="text-[14px] font-bold text-white"
+          >
+            {value}
+          </motion.span>
+          <motion.span 
+            key={pct}
+            initial={{ scale: 1.1 }}
+            animate={{ scale: 1 }}
+            className={`text-[12px] font-semibold ${isPositive ? 'text-green-400' : 'text-red-400'}`}
+          >
              {isPositive ? '+' : ''}{pct.toFixed(2)}%
-          </span>
+          </motion.span>
        </div>
     </div>
   );
@@ -418,7 +522,13 @@ function PatrimoineComptes({ setCurrentView, balances }: any) {
   };
 
   return (
-    <div className="flex flex-col h-full animate-in slide-in-from-bottom-8 duration-300 relative bg-gradient-to-b from-[#0A1530] to-[#050A1A]">
+    <motion.div 
+      initial={{ x: "100%" }}
+      animate={{ x: 0 }}
+      exit={{ x: "100%" }}
+      transition={{ type: "spring", stiffness: 400, damping: 25 }}
+      className="absolute inset-0 flex flex-col h-full bg-gradient-to-b from-[#0A1530] to-[#050A1A] z-40"
+    >
       {/* Header */}
       <div className="flex items-center px-4 pt-2 pb-2">
         <button 
@@ -458,51 +568,69 @@ function PatrimoineComptes({ setCurrentView, balances }: any) {
             Patrimoine total <ChevronRight size={14} className="ml-0.5 relative top-[1px]" />
           </div>
           <div className="flex items-baseline justify-center">
-            <span className="text-[36px] font-bold tracking-tight text-white whitespace-nowrap">
-              {formatMoney(totalMAD)}
+            <span className="text-5xl font-bold tracking-tight text-white whitespace-nowrap">
+              {formatMoneyParts(totalMAD).integerPart}
             </span>
-            <span className="text-[18px] font-medium text-white/50 ml-1.5">MAD</span>
+            <span className="text-2xl font-medium text-white/60 ml-0.5">{formatMoneyParts(totalMAD).decimalPart} <span className="ml-1">MAD</span></span>
           </div>
         </div>
 
         {/* Patrimoine List rows */}
         <div className="px-4">
-          <div className="bg-[#1c2b43] rounded-[24px] p-2 border border-white/5 flex flex-col shadow-lg">
-            <PatrimoineRow 
-              icon={<Coins size={20} className="text-[#3b82f6]" />} 
-              iconBg="bg-[#3b82f6]/10"
-              label="Espèces" 
-              subValue={`${formatMoney(balances.MAD)} MAD`} 
-            />
-            <PatrimoineRow 
-              icon={<HandCoins size={20} className="text-[#eab308]" />} 
-              iconBg="bg-[#eab308]/10"
-              label="Prêt" 
-              subValue="Obtenez un prêt allant jusqu'à..." 
-            />
-            <PatrimoineRow 
-              icon={<BarChart3 size={20} className="text-[#3b82f6]" />} 
-              iconBg="bg-[#3b82f6]/10"
-              label="Investir" 
-              subValue="Investir dès 1 MAD" 
-            />
-            <PatrimoineRow 
-              icon={<Bitcoin size={20} className="text-[#a855f7]" />} 
-              iconBg="bg-[#a855f7]/10"
-              label="Cryptos" 
-              subValue="0,00 MAD" 
-            />
-            <PatrimoineRow 
-              icon={<LinkIcon size={20} className="text-[#06b6d4]" />} 
-              iconBg="bg-[#06b6d4]/10"
-              label="Lié(s)" 
-              subValue="Liez des comptes externes" 
-              isLast
-            />
-          </div>
+          <motion.div 
+             initial="hidden"
+             animate="visible"
+             variants={{
+               hidden: { opacity: 0 },
+               visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
+             }}
+             className="bg-[#1c2b43] rounded-[24px] p-2 border border-white/5 flex flex-col shadow-lg"
+          >
+            <motion.div variants={{ hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0 } }}>
+              <PatrimoineRow 
+                icon={<Coins size={20} className="text-[#3b82f6]" />} 
+                iconBg="bg-[#3b82f6]/10"
+                label="Espèces" 
+                subValue={`${formatMoney(totalMAD)} MAD`} 
+              />
+            </motion.div>
+            <motion.div variants={{ hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0 } }}>
+              <PatrimoineRow 
+                icon={<HandCoins size={20} className="text-[#eab308]" />} 
+                iconBg="bg-[#eab308]/10"
+                label="Prêt" 
+                subValue="Obtenez un prêt allant jusqu'à..." 
+              />
+            </motion.div>
+            <motion.div variants={{ hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0 } }}>
+              <PatrimoineRow 
+                icon={<BarChart3 size={20} className="text-[#3b82f6]" />} 
+                iconBg="bg-[#3b82f6]/10"
+                label="Investir" 
+                subValue="Investir dès 1 MAD" 
+              />
+            </motion.div>
+            <motion.div variants={{ hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0 } }}>
+              <PatrimoineRow 
+                icon={<Bitcoin size={20} className="text-[#a855f7]" />} 
+                iconBg="bg-[#a855f7]/10"
+                label="Cryptos" 
+                subValue="0,00 MAD" 
+              />
+            </motion.div>
+            <motion.div variants={{ hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0 } }}>
+              <PatrimoineRow 
+                icon={<LinkIcon size={20} className="text-[#06b6d4]" />} 
+                iconBg="bg-[#06b6d4]/10"
+                label="Lié(s)" 
+                subValue="Liez des comptes externes" 
+                isLast
+              />
+            </motion.div>
+          </motion.div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -616,7 +744,13 @@ function AddMoney({ setCurrentView, activeAccount, currentBalance, onAddMoney }:
   };
 
   return (
-    <div className="flex flex-col h-full animate-in slide-in-from-right-4 duration-300 relative">
+    <motion.div 
+      initial={{ y: "100%" }}
+      animate={{ y: 0 }}
+      exit={{ y: "100%" }}
+      transition={{ type: "spring", stiffness: 400, damping: 25 }}
+      className="absolute inset-0 flex flex-col h-full bg-[#051025] z-40"
+    >
       <div className="flex items-center px-4 pt-4 pb-4">
         <button onClick={() => setCurrentView('dashboard')} className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 transition shrink-0">
           <ChevronLeft size={24} className="text-white" />
@@ -661,7 +795,7 @@ function AddMoney({ setCurrentView, activeAccount, currentBalance, onAddMoney }:
           <span className="font-bold text-[16px]">Confirmer le dépôt</span>
         </button>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -694,7 +828,13 @@ function Transfer({ setCurrentView, balances, onTransfer }: any) {
   };
 
   return (
-    <div className="flex flex-col h-full animate-in slide-in-from-right-4 duration-300 relative">
+    <motion.div 
+      initial={{ y: "100%" }}
+      animate={{ y: 0 }}
+      exit={{ y: "100%" }}
+      transition={{ type: "spring", stiffness: 400, damping: 25 }}
+      className="absolute inset-0 flex flex-col h-full bg-[#051025] z-40"
+    >
       <div className="flex items-center px-4 pt-4 pb-2">
         <button 
           onClick={() => step === 'confirm' ? setStep('input') : setCurrentView('dashboard')} 
@@ -794,7 +934,7 @@ function Transfer({ setCurrentView, balances, onTransfer }: any) {
           {step === 'confirm' ? 'Confirmer le transfert' : 'Vérifier le change'}
         </button>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -803,7 +943,13 @@ function Transfer({ setCurrentView, balances, onTransfer }: any) {
 /* ========================================================================== */
 function BankDetails({ setCurrentView, activeAccount }: any) {
   return (
-    <div className="flex flex-col h-full animate-in slide-in-from-right-4 duration-300 relative">
+    <motion.div 
+      initial={{ x: "100%" }}
+      animate={{ x: 0 }}
+      exit={{ x: "100%" }}
+      transition={{ type: "spring", stiffness: 400, damping: 25 }}
+      className="absolute inset-0 flex flex-col h-full bg-[#051025] z-40"
+    >
       <div className="flex flex-col px-4 pt-4 pb-4 bg-[#0A1530]">
         <div className="flex items-center">
           <button onClick={() => setCurrentView('dashboard')} className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 transition shrink-0">
@@ -854,7 +1000,7 @@ function BankDetails({ setCurrentView, activeAccount }: any) {
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
