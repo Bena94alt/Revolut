@@ -7,29 +7,29 @@ const springTransition = { type: "spring", stiffness: 400, damping: 25 };
 const CATEGORIES = ['Tech', 'Énergies', 'Crypto', 'Métaux précieux', 'ETF', 'Immobilier', 'Luxe'];
 
 export const ALL_ASSETS = [
-  { id: 'nvda', name: 'NVIDIA', type: 'Tech', risk: 'high', apy: 22.5,  icon: 'NV', bg: 'bg-[#76b900] text-white' },
-  { id: 'aapl', name: 'Apple', type: 'Tech', risk: 'low', apy: 8.2,   icon: '', bg: 'bg-white text-black' },
-  { id: 'msft', name: 'Microsoft', type: 'Tech', risk: 'low', apy: 9.5,   icon: 'MS', bg: 'bg-[#00a4ef] text-white' },
-  { id: 'tsla', name: 'Tesla', type: 'Tech', risk: 'high', apy: 18.0,  icon: 'T', bg: 'bg-[#e2231a] text-white' },
-  { id: 'amzn', name: 'Amazon', type: 'Tech', risk: 'medium', apy: 12.0,  icon: 'a', bg: 'bg-[#131921] text-[#FF9900]' },
-  { id: 'btc', name: 'Bitcoin', type: 'Crypto', risk: 'high', apy: 45.0,  icon: '₿', bg: 'bg-[#F7931A] text-white' },
-  { id: 'eth', name: 'Ethereum', type: 'Crypto', risk: 'high', apy: 38.0,  icon: 'Ξ', bg: 'bg-[#627EEA] text-white' },
-  { id: 'sol', name: 'Solana', type: 'Crypto', risk: 'high', apy: 55.0,  icon: 'S', bg: 'bg-[#14F195] text-black' },
-  { id: 'xrp', name: 'XRP', type: 'Crypto', risk: 'high', apy: 28.0,  icon: '✕', bg: 'bg-[#23292F] text-white' },
-  { id: 'gold', name: 'Or', type: 'Métaux précieux', risk: 'low', apy: 4.5, icon: 'AU', bg: 'bg-[#FFD700] text-black' },
-  { id: 'silver', name: 'Argent', type: 'Métaux précieux', risk: 'medium', apy: 6.0, icon: 'AG', bg: 'bg-[#C0C0C0] text-black' },
-  { id: 'sp500', name: 'S&P 500', type: 'ETF', risk: 'medium', apy: 10.5, icon: 'SP', bg: 'bg-blue-800 text-white' },
-  { id: 'nasdaq', name: 'NASDAQ', type: 'ETF', risk: 'medium', apy: 14.2, icon: 'NQ', bg: 'bg-indigo-600 text-white' },
-  { id: 'cac40', name: 'CAC 40', type: 'ETF', risk: 'medium', apy: 7.8, icon: 'C4', bg: 'bg-blue-600 text-white' },
-  { id: 'xom', name: 'Exxon', type: 'Énergies', risk: 'medium', apy: 6.5, icon: 'XOM', bg: 'bg-red-600 text-white' },
-  { id: 'bp', name: 'BP', type: 'Énergies', risk: 'medium', apy: 5.8, icon: 'BP', bg: 'bg-green-600 text-white' },
-  { id: 'lvmh', name: 'LVMH', type: 'Luxe', risk: 'low', apy: 9.0, icon: 'LV', bg: 'bg-black text-white' },
-  { id: 'hermes', name: 'Hermès', type: 'Luxe', risk: 'low', apy: 11.0, icon: 'HR', bg: 'bg-orange-500 text-white' },
-  { id: 'reit1', name: 'Realty Inc', type: 'Immobilier', risk: 'low', apy: 6.8, icon: 'O', bg: 'bg-teal-600 text-white' },
-  { id: 'reit2', name: 'Vanguard RE', type: 'Immobilier', risk: 'low', apy: 7.2, icon: 'VNQ', bg: 'bg-red-800 text-white' }
+  { id: 'nvda', name: 'NVIDIA', type: 'Tech', risk: 'high', apy: 22.5, price: 8250, icon: 'NV', bg: 'bg-[#76b900] text-white' },
+  { id: 'aapl', name: 'Apple', type: 'Tech', risk: 'low', apy: 8.2, price: 1850, icon: '', bg: 'bg-white text-black' },
+  { id: 'msft', name: 'Microsoft', type: 'Tech', risk: 'low', apy: 9.5, price: 4200, icon: 'MS', bg: 'bg-[#00a4ef] text-white' },
+  { id: 'tsla', name: 'Tesla', type: 'Tech', risk: 'high', apy: 18.0, price: 1750, icon: 'T', bg: 'bg-[#e2231a] text-white' },
+  { id: 'amzn', name: 'Amazon', type: 'Tech', risk: 'medium', apy: 12.0, price: 1850, icon: 'a', bg: 'bg-[#131921] text-[#FF9900]' },
+  { id: 'btc', name: 'Bitcoin', type: 'Crypto', risk: 'high', apy: 45.0, price: 680000, icon: '₿', bg: 'bg-[#F7931A] text-white' },
+  { id: 'eth', name: 'Ethereum', type: 'Crypto', risk: 'high', apy: 38.0, price: 35000, icon: 'Ξ', bg: 'bg-[#627EEA] text-white' },
+  { id: 'sol', name: 'Solana', type: 'Crypto', risk: 'high', apy: 55.0, price: 1450, icon: 'S', bg: 'bg-[#14F195] text-black' },
+  { id: 'xrp', name: 'XRP', type: 'Crypto', risk: 'high', apy: 28.0, price: 6.5, icon: '✕', bg: 'bg-[#23292F] text-white' },
+  { id: 'gold', name: 'Or', type: 'Métaux précieux', risk: 'low', apy: 4.5, price: 2350, icon: 'AU', bg: 'bg-[#FFD700] text-black' },
+  { id: 'silver', name: 'Argent', type: 'Métaux précieux', risk: 'medium', apy: 6.0, price: 28, icon: 'AG', bg: 'bg-[#C0C0C0] text-black' },
+  { id: 'sp500', name: 'S&P 500', type: 'ETF', risk: 'medium', apy: 10.5, price: 5200, icon: 'SP', bg: 'bg-blue-800 text-white' },
+  { id: 'nasdaq', name: 'NASDAQ', type: 'ETF', risk: 'medium', apy: 14.2, price: 18500, icon: 'NQ', bg: 'bg-indigo-600 text-white' },
+  { id: 'cac40', name: 'CAC 40', type: 'ETF', risk: 'medium', apy: 7.8, price: 8100, icon: 'C4', bg: 'bg-blue-600 text-white' },
+  { id: 'xom', name: 'Exxon', type: 'Énergies', risk: 'medium', apy: 6.5, price: 120, icon: 'XOM', bg: 'bg-red-600 text-white' },
+  { id: 'bp', name: 'BP', type: 'Énergies', risk: 'medium', apy: 5.8, price: 38, icon: 'BP', bg: 'bg-green-600 text-white' },
+  { id: 'lvmh', name: 'LVMH', type: 'Luxe', risk: 'low', apy: 9.0, price: 850, icon: 'LV', bg: 'bg-black text-white' },
+  { id: 'hermes', name: 'Hermès', type: 'Luxe', risk: 'low', apy: 11.0, price: 2300, icon: 'HR', bg: 'bg-orange-500 text-white' },
+  { id: 'reit1', name: 'Realty Inc', type: 'Immobilier', risk: 'low', apy: 6.8, price: 55, icon: 'O', bg: 'bg-teal-600 text-white' },
+  { id: 'reit2', name: 'Vanguard RE', type: 'Immobilier', risk: 'low', apy: 7.2, price: 85, icon: 'VNQ', bg: 'bg-red-800 text-white' }
 ];
 
-export function InvestFlow({ setCurrentView, setInvestments }: any) {
+export function InvestFlow({ setCurrentView, setInvestments, marketState }: any) {
   const [step, setStep] = useState(1);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedAssets, setSelectedAssets] = useState<string[]>([]);
@@ -53,7 +53,8 @@ export function InvestFlow({ setCurrentView, setInvestments }: any) {
   };
 
   const handleAmountChange = (id: string, val: string) => {
-    setAmounts(prev => ({ ...prev, [id]: Number(val) }));
+    const num = parseFloat(val);
+    setAmounts(prev => ({ ...prev, [id]: isNaN(num) ? 0 : num }));
   };
 
   const handleClose = () => {
@@ -73,11 +74,11 @@ export function InvestFlow({ setCurrentView, setInvestments }: any) {
     return sum + (amt * (asset.apy / 100));
   }, 0);
   
-  const estimatedMonthlyReturn = (totalInvested as number) > 0 ? (estimatedReturnAnnual / 12) : 0;
+  const estimatedMonthlyReturn = totalInvested > 0 ? (estimatedReturnAnnual / 12) : 0;
   
   // Risk weighting logic: Low=1, Medium=2, High=3
   let globalRiskScore = 0;
-  if ((totalInvested as number) > 0) {
+  if (totalInvested > 0) {
     const riskSum = chosenAssets.reduce((acc, asset) => {
       const amt = (amounts[asset.id] as number) || 0;
       let rVal = 1;
@@ -85,9 +86,8 @@ export function InvestFlow({ setCurrentView, setInvestments }: any) {
       if (asset.risk === 'high') rVal = 3;
       return acc + (amt * rVal);
     }, 0);
-    globalRiskScore = riskSum / (totalInvested as number);
+    globalRiskScore = riskSum / totalInvested;
   } else {
-    // simple avg if no money entered yet
     const rawSum = chosenAssets.reduce((acc, a) => acc + (a.risk === 'high' ? 3 : a.risk === 'medium' ? 2 : 1), 0);
     globalRiskScore = chosenAssets.length ? rawSum / chosenAssets.length : 0;
   }
@@ -216,16 +216,14 @@ export function InvestFlow({ setCurrentView, setInvestments }: any) {
                          onClick={() => handleToggleAsset(asset.id)}
                          className="relative flex flex-col items-center cursor-pointer group p-2"
                        >
-                          {/* Inner Circle / Logo */}
                           <div className={`w-[76px] h-[76px] rounded-full flex items-center justify-center shadow-lg transition-all ${asset.bg} ${isSelected ? 'ring-4 ring-[#3b82f6] shadow-[0_0_25px_rgba(59,130,246,0.5)] scale-110' : 'group-hover:scale-105'}`}>
-                             {/* Risk SVG Border */}
                              <svg className="absolute inset-0 w-full h-full rotate-[-90deg] pointer-events-none" viewBox="0 0 100 100">
                                 <circle 
                                   cx="50" cy="50" r="47"
                                   fill="none"
                                   stroke={getHexColor(asset.risk)}
                                   strokeWidth="3"
-                                  strokeDasharray="295" // 2*PI*R
+                                  strokeDasharray="295"
                                   strokeDashoffset={isSelected ? "0" : "150"}
                                   strokeLinecap="round"
                                   className="transition-all duration-500 opacity-80"
@@ -233,16 +231,12 @@ export function InvestFlow({ setCurrentView, setInvestments }: any) {
                              </svg>
                              <span className="text-[20px] font-bold tracking-tight">{asset.icon}</span>
                           </div>
-                          
-                          {/* Label */}
                           <span className={`mt-2 font-bold transition-all ${isSelected ? 'text-[#3b82f6] text-[14px]' : 'text-white/80 text-[13px]'}`}>
                             {asset.name}
                           </span>
-                          
-                          {/* APY Badge overlaying bubble bottom */}
                           <div className={`absolute top-[64px] bg-[#0A1530] border px-2 py-0.5 rounded-full flex flex-col items-center justify-center transition-all ${isSelected ? 'border-[#3b82f6] scale-110' : 'border-white/10'}`}>
                              <span className="text-[10px] font-bold text-white whitespace-nowrap opacity-90 leading-tight tracking-wide">
-                               APY: ~{asset.apy}%
+                                APY: ~{asset.apy}%
                              </span>
                           </div>
                        </motion.div>
@@ -279,7 +273,7 @@ export function InvestFlow({ setCurrentView, setInvestments }: any) {
               className="absolute inset-0 flex flex-col pb-6"
             >
               <div className="px-5 pt-2 pb-4 bg-[#0A1530] border-b border-white/5 z-10 shrink-0">
-                 <div className="flex animate-in fade-in slide-in-from-bottom-4 duration-500 delay-100 items-center justify-between bg-[#1c2b43] border border-white/10 rounded-[20px] p-4 shadow-lg mb-2">
+                 <div className="flex items-center justify-between bg-[#1c2b43] border border-white/10 rounded-[20px] p-4 shadow-lg mb-2">
                     <div className="flex flex-col">
                        <span className="text-[12px] text-[#94a3b8] font-semibold mb-1 flex items-center gap-1">
                           Risque Global <Info size={12}/>
@@ -303,12 +297,9 @@ export function InvestFlow({ setCurrentView, setInvestments }: any) {
                  <h3 className="text-[15px] font-bold text-white mb-2">Répartition de l'investissement</h3>
                  {chosenAssets.map(asset => (
                    <div key={asset.id} className="bg-[#1c2b43] rounded-[20px] p-4 border border-white/5 flex items-center gap-4">
-                      {/* Logo Area */}
                       <div className={`w-[48px] h-[48px] rounded-full flex items-center justify-center shrink-0 ${asset.bg}`}>
                         <span className="font-bold text-[14px]">{asset.icon}</span>
                       </div>
-                      
-                      {/* Name & Input Block */}
                       <div className="flex-1 flex flex-col">
                          <div className="flex justify-between items-center mb-2">
                             <span className="font-bold text-white text-[14px]">{asset.name}</span>
@@ -333,9 +324,7 @@ export function InvestFlow({ setCurrentView, setInvestments }: any) {
                       </div>
                    </div>
                  ))}
-                 
                  <div className="mt-4 p-4 border border-blue-500/30 bg-blue-500/10 rounded-[20px] relative overflow-hidden flex flex-col">
-                    <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/20 rounded-full blur-2xl pointer-events-none" />
                     <h4 className="text-white font-bold text-[14px] mb-1">Moben Auto-Balance</h4>
                     <p className="text-[12px] text-blue-200/80 leading-snug">
                        L'investissement régulier sera ajusté dynamiquement pour maintenir ce profil de risque.
@@ -348,19 +337,46 @@ export function InvestFlow({ setCurrentView, setInvestments }: any) {
                     <span className="text-[#94a3b8] font-medium text-[14px]">Total</span>
                     <span className="text-white font-bold text-[22px] tracking-tight">{totalInvested.toLocaleString()} <span className="text-[14px] opacity-50">MAD</span></span>
                  </div>
-                 <motion.button 
-                   whileTap={{ scale: 0.95 }}
-                   disabled={totalInvested === 0}
-                   onClick={() => {
-                     setInvestments((prev: any) => ({ ...prev, ...amounts }));
-                     setCurrentView('dashboard');
-                   }}
-                   className={`w-full h-14 rounded-[24px] font-bold text-[16px] transition-all flex items-center justify-center gap-2 ${
-                     totalInvested > 0 
-                       ? 'bg-gradient-to-r from-blue-500 to-cyan-400 text-white shadow-[0_0_20px_rgba(59,130,246,0.4)]'
-                       : 'bg-white/10 text-white/30 cursor-not-allowed'
-                   }`}
-                 >
+                  <motion.button 
+                    whileTap={{ scale: 0.95 }}
+                    disabled={totalInvested === 0}
+                    onClick={() => {
+                      setInvestments((prev: any) => {
+                        const next = { ...prev };
+                        Object.entries(amounts).forEach(([id, _madAmount]) => {
+                          const madAmount = _madAmount as number;
+                          if (madAmount <= 0) return;
+                          
+                          // Correct Share Calculation based on real-time marketState price
+                          const livePrice = (marketState.prices as any)[id];
+                          const asset = ALL_ASSETS.find(a => a.id === id);
+                          const priceToUse = livePrice || asset?.price || 1;
+                          const quantity = madAmount / priceToUse;
+                          
+                          if (next[id]) {
+                            next[id] = {
+                              ...next[id],
+                              totalInvestedMAD: (next[id].totalInvestedMAD || 0) + madAmount,
+                              quantity: (next[id].quantity || 0) + quantity
+                            };
+                          } else {
+                            next[id] = {
+                              assetId: id,
+                              totalInvestedMAD: madAmount,
+                              quantity: quantity
+                            };
+                          }
+                        });
+                        return next;
+                      });
+                      setCurrentView('dashboard');
+                    }}
+                    className={`w-full h-14 rounded-[24px] font-bold text-[16px] transition-all flex items-center justify-center gap-2 ${
+                      totalInvested > 0 
+                        ? 'bg-gradient-to-r from-blue-500 to-cyan-400 text-white shadow-[0_0_20px_rgba(59,130,246,0.4)]'
+                        : 'bg-white/10 text-white/30 cursor-not-allowed'
+                    }`}
+                  >
                    {totalInvested > 0 ? (
                      <>
                         Confirmer l'investissement <CheckCircle2 size={20} />
