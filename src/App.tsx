@@ -46,7 +46,7 @@ const EXCHANGE_RATE = 10.85; // EUR to MAD
 
 // Daily News Pool (50+ Headlines for April 22, 2026)
 const BLOOMBERG_DAILY_POOL = [
-  { id: 1, ticker: "NVDA", title: "NVIDIA annoncerait des revenus record pour le T1 2026 portés par l'IA générative.", category: "Tech" },
+  { id: 1, ticker: "NVDA", title: "NVIDIA annonce des revenus record pour le T1 2026 portés par l'IA générative.", category: "Tech" },
   { id: 2, ticker: "FED", title: "Powell suggère un maintien des taux face à une inflation résiliente.", category: "Économie" },
   { id: 3, ticker: "BTC", title: "Le Bitcoin franchit la barre des 72 000 USD alors que l'adoption institutionnelle s'accélère.", category: "Crypto" },
   { id: 4, ticker: "AAPL", title: "Apple Vision Pro 2 : Des rumeurs de lancement pour fin 2026 boostent l'action.", category: "Tech" },
@@ -96,6 +96,12 @@ const BLOOMBERG_DAILY_POOL = [
   { id: 48, ticker: "SNOW", title: "Snowflake annonce une intégration profonde avec NVIDIA NeMo.", category: "Tech" },
   { id: 49, ticker: "SQ", title: "Block (Square) intègre le Bitcoin comme monnaie de règlement par défaut.", category: "Fintech" },
   { id: 50, ticker: "INTC", title: "Intel annonce ses processeurs 1.8nm pour fin 2026.", category: "Tech" },
+  { id: 51, ticker: "REVOLUT", title: "Moben et Revolut annoncent un partenariat stratégique sur le marché marocain.", category: "Fintech" },
+  { id: 52, ticker: "MOROCCO", title: "Casablanca Finance City devient la première place financière africaine selon le GFCI.", category: "Économie" },
+  { id: 53, ticker: "AFRICA", title: "Croissance africaine : prévisions de 4.8% pour l'ensemble du continent en 2026.", category: "Économie" },
+  { id: 54, ticker: "CASA", title: "La Bourse de Casablanca lance un nouvel indice ESG 'Moben-Sustainable'.", category: "Économie" },
+  { id: 55, ticker: "TANGER", title: "Tanger Med devient le premier port de la Méditerranée en volume de conteneurs.", category: "Économie" },
+  { id: 56, ticker: "RABAT", title: "Lancement de la Cité des Métiers et des Compétences à Rabat pour booster l'emploi.", category: "Social" },
 ];
 
 const INITIAL_MARKET_STATE = {
@@ -453,6 +459,7 @@ export default function App() {
               currentView !== "invest" &&
               currentView !== "virements" &&
               currentView !== "cryptos" &&
+              currentView !== "points" &&
               currentView !== "news_feed" &&
               currentView !== "invest_flow" && (
                 <motion.div
@@ -1065,10 +1072,10 @@ function Dashboard({
                         <div className="flex flex-col">
                           <div className="flex items-baseline gap-1">
                             <span className="text-[24px] font-bold text-white tracking-tight">
-                              {formatMoneyParts(currentVal).integerPart}
+                              {formatMoneyParts(investmentData.totalInvestedMAD).integerPart}
                             </span>
                             <span className="text-[14px] font-bold text-white/50">
-                              {formatMoneyParts(currentVal).decimalPart} MAD
+                              {formatMoneyParts(investmentData.totalInvestedMAD).decimalPart} MAD
                             </span>
                           </div>
                           <p className="text-[#94a3b8] text-[12px] font-medium mt-0.5">

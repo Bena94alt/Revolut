@@ -47,6 +47,9 @@ export function Cryptos({ setCurrentView, marketState }: any) {
   
   const startNego = () => setFiscalFlow('question');
   const resetFiscal = () => {
+    if (fiscalFlow === 'error') {
+      setCurrentView('dashboard');
+    }
     setFiscalFlow('none');
     setNifValue('');
     setIsValidating(false);

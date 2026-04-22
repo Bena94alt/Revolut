@@ -53,7 +53,7 @@ export function MobenPoints({ setCurrentView }: any) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="flex flex-col w-full min-h-full pb-32 bg-gradient-to-b from-[#0A1530] to-[#050A1A]"
+      className="flex flex-col w-full min-h-full pb-32 bg-gradient-to-b from-[#0A1530] to-[#050A1A] relative z-50 pointer-events-auto"
     >
       {/* Header */}
       <div className="flex items-center justify-between px-4 pt-6 mb-8">
