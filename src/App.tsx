@@ -34,6 +34,7 @@ import {
 import { motion, AnimatePresence } from "motion/react";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip } from 'recharts';
 
 import { Invest } from "./views/Invest";
 import { InvestFlow, ALL_ASSETS } from "./views/InvestFlow";
@@ -305,7 +306,7 @@ export default function App() {
 
   // Global Financial State
   const [balances, setBalances] = useState({
-    MAD: 0.01,
+    MAD: 11732.0,
     EUR: 0.0,
     USD: 0.0,
     GBP: 0.0,
@@ -448,6 +449,7 @@ export default function App() {
                     setCurrentView={setCurrentView} 
                     marketState={marketState}
                     newsFeed={newsFeed}
+                    investments={investments}
                   />
                 </motion.div>
               )}
@@ -925,37 +927,56 @@ function Dashboard({
       {/* Dépenses du mois Section */}
       <div className="px-4 mt-6">
         <div className="bg-[#1c2b43] rounded-[24px] p-5 border border-white/5 shadow-lg">
-          <h3 className="text-[13px] font-medium text-[#94a3b8] mb-1">
-            Dépenses du mois
-          </h3>
-          <div className="flex items-baseline mb-6">
-            <span className="text-5xl font-bold text-white tracking-tight leading-none">
+          <div className="flex justify-between items-start mb-1">
+            <h3 className="text-[13px] font-medium text-[#94a3b8]">
+              Dépenses du mois
+            </h3>
+            <span className="text-[11px] font-bold text-green-400 bg-green-500/10 px-2 py-0.5 rounded-full">
+              -12% vs mars
+            </span>
+          </div>
+          <div className="flex items-baseline mb-4">
+            <span className="text-4xl font-bold text-white tracking-tight leading-none">
               27 832
             </span>
-            <span className="text-2xl font-medium text-white/50 ml-0.5">
+            <span className="text-[18px] font-medium text-white/50 ml-0.5">
               ,00 MAD
             </span>
           </div>
 
-          {/* Progress Bar with markers */}
-          <div className="relative pt-2">
-            <div className="w-full flex h-[4px] gap-[2px]">
-              {Array.from({ length: 30 }).map((_, i) => (
-                <div
-                  key={i}
-                  className={`flex-1 rounded-full ${i < 21 ? "bg-white" : "bg-white/20"}`}
-                ></div>
-              ))}
-            </div>
-            <div className="flex justify-between w-full mt-2 text-[10px] text-white/50 font-medium">
-              <span>1</span>
-              <span>6</span>
-              <span>11</span>
-              <span>16</span>
-              <span>21</span>
-              <span>26</span>
-              <span>30</span>
-            </div>
+          <div className="h-[120px] w-full mt-2">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={[
+                { day: '1', amt: 400 },
+                { day: '5', amt: 1200 },
+                { day: '10', amt: 800 },
+                { day: '15', amt: 2100 },
+                { day: '20', amt: 1600 },
+                { day: '25', amt: 2800 },
+                { day: '30', amt: 2200 },
+              ]}>
+                <defs>
+                  <linearGradient id="colorAmt" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <Area 
+                  type="monotone" 
+                  dataKey="amt" 
+                  stroke="#3b82f6" 
+                  strokeWidth={3}
+                  fillOpacity={1} 
+                  fill="url(#colorAmt)" 
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+          
+          <div className="flex justify-between w-full mt-2 text-[10px] text-white/40 font-bold uppercase tracking-wider">
+            <span>Début</span>
+            <span>Mi-mois</span>
+            <span>Aujourd'hui</span>
           </div>
         </div>
       </div>

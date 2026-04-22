@@ -4,6 +4,7 @@ import {
   Search, Globe, ChevronRight, BarChart3, TrendingUp, TrendingDown, 
   Briefcase, FileText, Activity, PieChart, ArrowUpRight, ArrowDownRight, Newspaper
 } from 'lucide-react';
+import { ALL_ASSETS } from './InvestFlow';
 
 const springTransition = { type: "spring", stiffness: 400, damping: 25 };
 
@@ -16,12 +17,29 @@ const initialStocks = [
   { id: 'amzn', symbol: 'AMZN', bg: 'bg-[#131921] text-[#FF9900]', short: 'a' }
 ];
 
-export function Invest({ setCurrentView, marketState, newsFeed }: any) {
+export function Invest({ setCurrentView, marketState, newsFeed, investments }: any) {
   const stockList = initialStocks.map(s => {
     const livePrice = (marketState.prices as any)[s.id] || 0;
     const dailyOpen = (marketState.dailyOpens as any)[s.id] || livePrice;
     const pct = ((livePrice - dailyOpen) / dailyOpen) * 100;
     return { ...s, price: livePrice, pct };
+  });
+
+  const investmentList = Object.entries(investments || {}).map(([id, data]: any) => {
+    const asset = ALL_ASSETS.find(a => a.id === id);
+    const livePrice = (marketState.prices as any)[id] || asset?.price || 0;
+    const dailyOpen = (marketState.dailyOpens as any)[id] || livePrice;
+    const profit = ((livePrice - dailyOpen) / dailyOpen) * 100;
+    const value = (data.quantity * livePrice).toFixed(2);
+    
+    return {
+      symbol: asset?.icon || '?',
+      name: asset?.name || 'Inconnu',
+      shares: data.quantity.toFixed(4),
+      value: value,
+      profit: profit.toFixed(2),
+      isPos: profit >= 0
+    };
   });
 
   const products = [
@@ -69,6 +87,39 @@ export function Invest({ setCurrentView, marketState, newsFeed }: any) {
           Investir Maintenant
         </motion.button>
       </div>
+
+      {/* NOUVELLE SECTION : MES ACTIONS */}
+      {investmentList.length > 0 && (
+        <div className="px-4 mt-8">
+          <h2 className="text-[17px] font-bold text-white mb-4">Mes Actions</h2>
+          <div className="space-y-3">
+            {investmentList.map((inv, index) => (
+              <motion.div 
+                key={index}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-[#1c2b43] p-4 rounded-[24px] border border-white/5 flex justify-between items-center"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center font-bold text-white text-[14px]">
+                    {inv.symbol}
+                  </div>
+                  <div>
+                    <p className="text-white font-bold text-[15px]">{inv.name}</p>
+                    <p className="text-white/40 text-[12px]">{inv.shares} actions</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-white font-bold text-[15px]">{inv.value} MAD</p>
+                  <p className={`${inv.isPos ? 'text-green-400' : 'text-red-400'} text-[12px] font-bold`}>
+                    {inv.isPos ? '+' : ''}{inv.profit}%
+                  </p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Popular Assets (Stock Tracking) */}
       <div className="mt-8 px-4">
